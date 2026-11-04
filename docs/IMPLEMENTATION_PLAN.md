@@ -131,6 +131,11 @@ interface AiAgent<State, Action> {
 ### Phase 5 – Weitere Spiele (nach Komplexität)
 
 1. Patience-Familie: Klondike, FreeCell, Spider (Single-Player, keine KI nötig, Undo wichtig)
+   - **M7 – Solitär (Klondike-Regeln) ✅:** 1 oder 3 Karten ziehen, Tippen = bester Zug, Kartenreihen
+     ziehen, automatisches Ablegen am Ende, Sackgassen-Hinweis, Aufgeben (zählt als Niederlage), Regelwerk;
+     Hochformat: Stapel/Ablagen über den Reihen, Querformat: seitlich, damit die Reihen Platz haben
+   - **M8 – FreeCell:** freie Zellen, Mehrfachzüge nach Anzahl freier Zellen
+   - **M9 – Spider:** 1, 2 oder 4 Farben
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge

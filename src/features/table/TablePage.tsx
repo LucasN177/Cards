@@ -25,7 +25,9 @@ export function TablePage() {
   // Deep link or reload: continue the saved game if there is one, otherwise start a new one.
   useEffect(() => {
     if (!game || current) return
-    const { resume, start } = useMatch.getState()
+    const { resume, start, match: latest } = useMatch.getState()
+    // The effect can run twice for one render (StrictMode); never start a second game then.
+    if (latest?.gameId === game.id) return
     if (!(useSettings.getState().saveGames && resume(game))) start(game)
   }, [game, current])
 

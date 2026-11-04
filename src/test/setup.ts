@@ -1,11 +1,14 @@
 import '@testing-library/jest-dom/vitest'
 // jsdom has no IndexedDB; the match history uses it.
 import 'fake-indexeddb/auto'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { resetStatsDbForTests } from '@/features/stats/statsDb'
 import { useMatch } from '@/stores/matchStore'
 import { DEFAULT_SETTINGS, useSettings } from '@/stores/settingsStore'
 import { useStats } from '@/stores/statsStore'
+
+// Lazy routes are transformed on first use; under parallel load that can exceed 1 s.
+configure({ asyncUtilTimeout: 5000 })
 
 // jsdom has no matchMedia; default to a light OS theme.
 if (!window.matchMedia) {

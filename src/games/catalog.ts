@@ -35,7 +35,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     id: 'klondike',
-    name: 'Solitär (Klondike)',
+    name: 'Solitär',
     category: 'classic',
     description: 'Die klassische Patience: alle Karten auf die Ablagestapel.',
     players: { min: 1, max: 1 },

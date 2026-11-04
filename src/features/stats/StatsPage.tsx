@@ -54,10 +54,12 @@ const streakText = (streak: ReturnType<typeof overview>['currentStreak']) => {
 
 function GameSection({ stats }: { stats: GameStats }) {
   const fields = gameRegistry.get(stats.gameId)?.statFields ?? []
+  // Solitaire and other single-player games have no opponents to compare against.
+  const solo = DIFFICULTIES.every((d) => stats.byDifficulty[d].games === 0)
   const rows: [string, string][] = [
     ['Partien', formatCount(stats.games)],
     ['Siege', `${stats.wins} (${formatPercent(stats.winRate)})`],
-    ['Ø Platzierung', formatDecimal(stats.averagePlacement)],
+    ...(solo ? [] : [['Ø Platzierung', formatDecimal(stats.averagePlacement)] as [string, string]]),
     [`Ø ${stats.scoreLabel}`, formatDecimal(stats.averageScore)],
     [
       `Bestwert ${stats.scoreLabel}${stats.lowerScoreIsBetter ? ' (weniger ist besser)' : ''}`,
@@ -83,30 +85,32 @@ function GameSection({ stats }: { stats: GameStats }) {
           ))}
         </dl>
 
-        <table className="w-full text-sm">
-          <caption className="pb-2 text-left font-medium">Nach Stärke der Gegner</caption>
-          <thead className="text-muted-foreground">
-            <tr className="border-b">
-              <th className="py-1.5 text-left font-normal">Stufe</th>
-              <th className="py-1.5 text-right font-normal">Partien</th>
-              <th className="py-1.5 text-right font-normal">Siege</th>
-              <th className="py-1.5 text-right font-normal">Quote</th>
-            </tr>
-          </thead>
-          <tbody className="tabular-nums">
-            {DIFFICULTIES.map((difficulty) => {
-              const t = stats.byDifficulty[difficulty]
-              return (
-                <tr key={difficulty} className="border-b last:border-0">
-                  <td className="py-1.5">{DIFFICULTY_LABELS[difficulty]}</td>
-                  <td className="py-1.5 text-right">{t.games}</td>
-                  <td className="py-1.5 text-right">{t.wins}</td>
-                  <td className="py-1.5 text-right">{formatPercent(t.winRate)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        {!solo && (
+          <table className="w-full text-sm">
+            <caption className="pb-2 text-left font-medium">Nach Stärke der Gegner</caption>
+            <thead className="text-muted-foreground">
+              <tr className="border-b">
+                <th className="py-1.5 text-left font-normal">Stufe</th>
+                <th className="py-1.5 text-right font-normal">Partien</th>
+                <th className="py-1.5 text-right font-normal">Siege</th>
+                <th className="py-1.5 text-right font-normal">Quote</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {DIFFICULTIES.map((difficulty) => {
+                const t = stats.byDifficulty[difficulty]
+                return (
+                  <tr key={difficulty} className="border-b last:border-0">
+                    <td className="py-1.5">{DIFFICULTY_LABELS[difficulty]}</td>
+                    <td className="py-1.5 text-right">{t.games}</td>
+                    <td className="py-1.5 text-right">{t.wins}</td>
+                    <td className="py-1.5 text-right">{formatPercent(t.winRate)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
 
         {fields.length > 0 && (
           <table className="w-full text-sm">
@@ -173,9 +177,15 @@ function History({ records }: { records: readonly MatchRecord[] }) {
                   </time>
                 </div>
                 <p className="pl-5.5 text-xs text-muted-foreground">
-                  Platz {record.placement} von {record.players.length}
-                  {record.difficulty && ` · ${DIFFICULTY_LABELS[record.difficulty]}`} ·{' '}
-                  {record.humanScore} {record.scoreLabel} · {formatDuration(record.durationMs)}
+                  {[
+                    record.players.length > 1 &&
+                      `Platz ${record.placement} von ${record.players.length}`,
+                    record.difficulty && DIFFICULTY_LABELS[record.difficulty],
+                    `${record.humanScore} ${record.scoreLabel}`,
+                    formatDuration(record.durationMs),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </p>
               </li>
             )

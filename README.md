@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first game (**Mau-Mau**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau** and **Solitaire**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -23,7 +23,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 
 - [ ] Poker (Texas Hold'em)
 - [ ] Blackjack
-- [ ] Solitaire / Klondike
+- [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, auto-finish, dead-end hint, give up
 - [ ] Spider Solitaire
 - [ ] FreeCell
 - [x] Mau-Mau – with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
@@ -84,7 +84,7 @@ Every game brings its own AI through a common `AiAgent` interface. Measured in M
 - [x] Interactive card tables
 - [x] Smooth card animations
 - [x] Drag-and-drop card interactions
-- [x] Responsive layouts for desktop, tablet and mobile – portrait and landscape; touch: first tap lifts a card, second tap plays it
+- [x] Responsive layouts for desktop, tablet and mobile – portrait and landscape; in Mau-Mau the first tap lifts a card and the second plays it, in solitaire a tap makes the best move
 - [x] Configurable game speed
 - [ ] Undo and replay where game rules allow it – undo ✓, replays planned
 - [ ] Game tutorials and rule explanations – rule explanations ✓ (own page and in-game), tutorials planned
@@ -186,7 +186,8 @@ src
 │   └── players/   Seating order
 ├── ai/            Shared AI building blocks (random agent)
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
-│   └── mau-mau/
+│   ├── mau-mau/
+│   └── klondike/
 ├── features/      App features: card rendering, table, setup, rules, statistics, settings
 ├── stores/        Zustand stores: settings, running match, statistics
 ├── components/    Shared UI components (shadcn/ui)
@@ -274,7 +275,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | next |
+| 5 – More games | in progress – Solitaire ✓, next: FreeCell, Spider |
 | 6 – Advanced AI (web worker, more search) | planned |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

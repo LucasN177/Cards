@@ -25,7 +25,19 @@ function Corner({ label, color, rotate }: { label: string; color: string; rotate
   )
 }
 
-export function CardFace({ card, style }: { card: Card; style: DeckStyle }) {
+/**
+ * `topIndex` adds the suit in the top-right corner, so the suit stays visible when cards are
+ * fanned downwards and only their top edge shows (solitaire tableau).
+ */
+export function CardFace({
+  card,
+  style,
+  topIndex = false,
+}: {
+  card: Card
+  style: DeckStyle
+  topIndex?: boolean
+}) {
   if (card.kind === 'joker') {
     const color = card.color === 'red' ? '#d32f2f' : '#1f2937'
     return (
@@ -75,6 +87,7 @@ export function CardFace({ card, style }: { card: Card; style: DeckStyle }) {
       />
       <Corner label={label} color={color} />
       <SuitSymbol suit={card.suit} style={style} x={26} y={98} size={46} />
+      {topIndex && <SuitSymbol suit={card.suit} style={style} x={W - 82} y={24} size={58} />}
       <Corner label={label} color={color} rotate />
       <SuitSymbol suit={card.suit} style={style} x={W - 72} y={H - 144} size={46} rotate />
       {isFace ? (

@@ -15,6 +15,8 @@ export interface PlayingCardProps extends Omit<HTMLMotionProps<'div'>, 'children
   readonly card?: Card
   readonly faceDown?: boolean
   readonly size?: CardSize
+  /** Suit also in the top-right corner, for cards fanned downwards. */
+  readonly topIndex?: boolean
 }
 
 /** A single card, sized from the table's `--card-w`. Pass `layoutId` to animate between places. */
@@ -22,6 +24,7 @@ export function PlayingCard({
   card,
   faceDown = false,
   size = 'md',
+  topIndex = false,
   className,
   style,
   ...props
@@ -42,7 +45,7 @@ export function PlayingCard({
       }}
       {...props}
     >
-      {showFace ? <CardFace card={card} style={deckStyle} /> : <CardBack />}
+      {showFace ? <CardFace card={card} style={deckStyle} topIndex={topIndex} /> : <CardBack />}
     </motion.div>
   )
 }

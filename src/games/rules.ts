@@ -5,4 +5,5 @@ import type { RulesProps } from '@/features/rules/RulesText'
 export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentType<RulesProps>>>> =
   {
     'mau-mau': lazy(() => import('./mau-mau/MauMauRules')),
+    klondike: lazy(() => import('./klondike/KlondikeRules')),
   }
