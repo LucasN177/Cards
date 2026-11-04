@@ -15,6 +15,7 @@ import {
 import { DIFFICULTIES, type Difficulty } from '@/engine'
 import { findCatalogGame } from '@/games/catalog'
 import { DIFFICULTY_LABELS, playerCountLabel } from '@/lib/labels'
+import { useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 
 export function GameSetupPage() {
@@ -58,7 +59,9 @@ export function GameSetupPage() {
   })
 
   const start = () => {
-    setGamePreferences(game.id, { ...saved, opponents, difficulty })
+    const preferences = { ...saved, opponents, difficulty }
+    setGamePreferences(game.id, preferences)
+    if (game.definition) useMatch.getState().start(game.definition, preferences)
     void navigate(`/play/${game.id}`)
   }
 

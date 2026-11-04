@@ -13,11 +13,14 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    { name: 'mobile-landscape', use: { ...devices['Pixel 7 landscape'] } },
   ],
   webServer: {
     command: 'npm run build && npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Include the engine test game so table flows can be tested end to end.
+    env: { VITE_ENABLE_TEST_GAMES: 'true' },
   },
 })

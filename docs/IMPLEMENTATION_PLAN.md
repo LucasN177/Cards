@@ -98,7 +98,7 @@ interface AiAgent<State, Action> {
 
 - **M4 – App-Shell ✅:** Routing (Spielauswahl → Konfiguration → Tisch), Settings-Store mit
   Persistenz, Light/Dark-Theme, erste shadcn/ui-Komponenten
-- **M5 – Tisch & Karten:** Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout,
+- **M5 – Tisch & Karten ✅:** Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout,
   Anbindung `GameSession` ↔ React, Animationen mit Framer Motion, Drag & Drop, Spielgeschwindigkeit
 
 ### Phase 3 – Erstes Spiel end-to-end: **Mau-Mau**

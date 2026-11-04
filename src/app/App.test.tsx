@@ -1,6 +1,7 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderRoute } from '@/test/renderRoute'
+import { useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 import { App } from './App'
 import { resolveTheme } from './useTheme'
@@ -23,6 +24,8 @@ describe('game catalog', () => {
 })
 
 describe('game setup', () => {
+  afterEach(() => useMatch.getState().clear())
+
   it('saves the chosen setup and opens the table', async () => {
     const { router, user } = renderRoute('/games/high-card')
     expect(screen.getByRole('heading', { name: 'High Card' })).toBeInTheDocument()
@@ -31,12 +34,14 @@ describe('game setup', () => {
     await user.click(screen.getByRole('radio', { name: 'Experte' }))
     await user.click(screen.getByRole('button', { name: /Spiel starten/ }))
 
-    expect(router.state.location.pathname).toBe('/play/high-card')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/play/high-card'))
     expect(useSettings.getState().games['high-card']).toEqual({
       opponents: 3,
       difficulty: 'expert',
     })
-    expect(screen.getByText(/3 Gegner · Experte/)).toBeInTheDocument()
+    for (const name of ['Anna', 'Ben', 'Clara']) {
+      expect(await screen.findByRole('region', { name })).toBeInTheDocument()
+    }
   })
 
   it('starts with the previously saved setup', () => {
@@ -66,7 +71,7 @@ describe('game setup', () => {
 describe('settings', () => {
   it('persists changes to local storage', async () => {
     const { user } = renderRoute('/settings')
-    await user.click(screen.getByRole('radio', { name: 'Schnell' }))
+    await user.click(await screen.findByRole('radio', { name: 'Schnell' }))
     await user.click(screen.getByRole('switch', { name: 'Soundeffekte' }))
     const name = screen.getByLabelText('Dein Name')
     await user.clear(name)

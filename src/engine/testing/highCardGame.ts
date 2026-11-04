@@ -17,6 +17,9 @@ export interface HighCardState {
   readonly order: readonly PlayerId[]
   readonly hands: Readonly<Record<PlayerId, readonly Card[]>>
   readonly trick: readonly { readonly player: PlayerId; readonly card: Card }[]
+  /** The previous complete trick and its winner, so a UI can show who took it. */
+  readonly lastTrick: HighCardState['trick']
+  readonly lastWinner: PlayerId | null
   readonly tricksWon: Readonly<Record<PlayerId, number>>
   readonly turn: PlayerId
 }
@@ -25,6 +28,8 @@ export interface HighCardView {
   readonly hand: readonly Card[]
   readonly handSizes: Readonly<Record<PlayerId, number>>
   readonly trick: HighCardState['trick']
+  readonly lastTrick: HighCardState['trick']
+  readonly lastWinner: PlayerId | null
   readonly tricksWon: HighCardState['tricksWon']
   readonly turn: PlayerId
 }
@@ -55,6 +60,8 @@ export const highCardGame = defineGame<
       order,
       hands: Object.fromEntries(order.map((id, i) => [id, hands[i]!])),
       trick: [],
+      lastTrick: [],
+      lastWinner: null,
       tricksWon: Object.fromEntries(order.map((id) => [id, 0])),
       turn: order[0]!,
     }
@@ -81,6 +88,8 @@ export const highCardGame = defineGame<
       ...state,
       hands,
       trick: [],
+      lastTrick: trick,
+      lastWinner: winner,
       tricksWon: { ...state.tricksWon, [winner]: state.tricksWon[winner]! + 1 },
       turn: winner,
     }
@@ -90,6 +99,8 @@ export const highCardGame = defineGame<
     hand: state.hands[player] ?? [],
     handSizes: Object.fromEntries(state.order.map((id) => [id, state.hands[id]!.length])),
     trick: state.trick,
+    lastTrick: state.lastTrick,
+    lastWinner: state.lastWinner,
     tricksWon: state.tricksWon,
     turn: state.turn,
   }),

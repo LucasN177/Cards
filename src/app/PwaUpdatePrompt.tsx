@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+
+const OFFLINE_NOTE_MS = 4000
 
 /**
  * Registers the service worker and shows a small banner when the app is ready for
@@ -10,6 +13,14 @@ export function PwaUpdatePrompt() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW()
+
+  // The "offline ready" note is informational only; hide it on its own so it never blocks
+  // buttons at the bottom of small (landscape) phone screens. Update prompts stay until answered.
+  useEffect(() => {
+    if (!offlineReady || needRefresh) return
+    const timer = setTimeout(() => setOfflineReady(false), OFFLINE_NOTE_MS)
+    return () => clearTimeout(timer)
+  }, [offlineReady, needRefresh, setOfflineReady])
 
   if (!offlineReady && !needRefresh) return null
 

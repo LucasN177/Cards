@@ -1,20 +1,40 @@
 import type { RouteObject } from 'react-router'
 import { GameCatalogPage } from '@/features/catalog/GameCatalogPage'
-import { SettingsPage } from '@/features/settings/SettingsPage'
 import { GameSetupPage } from '@/features/setup/GameSetupPage'
-import { TablePage } from '@/features/table/TablePage'
 import { ErrorPage, NotFound } from './ErrorPage'
 import { Layout } from './Layout'
 
+// Heavier screens (table with animations, settings with form controls) load on demand to keep
+// the first load small on phones.
 export const routes: RouteObject[] = [
+  // The table is full-screen and has its own compact bar instead of the app header.
+  {
+    path: 'play/:gameId',
+    lazy: async () => ({ Component: (await import('@/features/table/TablePage')).TablePage }),
+    errorElement: <ErrorPage />,
+  },
   {
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <GameCatalogPage /> },
       { path: 'games/:gameId', element: <GameSetupPage /> },
-      { path: 'play/:gameId', element: <TablePage /> },
-      { path: 'settings', element: <SettingsPage /> },
+      {
+        path: 'settings',
+        lazy: async () => ({
+          Component: (await import('@/features/settings/SettingsPage')).SettingsPage,
+        }),
+      },
+      ...(import.meta.env.DEV
+        ? [
+            {
+              path: 'dev/cards',
+              lazy: async () => ({
+                Component: (await import('@/features/cards/CardGallery')).CardGallery,
+              }),
+            },
+          ]
+        : []),
       { path: '*', element: <NotFound /> },
     ],
   },

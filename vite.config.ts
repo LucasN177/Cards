@@ -9,6 +9,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   // GitHub Pages serves the app from https://<user>.github.io/Cards/
   base: process.env.GITHUB_PAGES ? '/Cards/' : '/',
+  define: {
+    // Always inline the flag (also when unset) so test-game code is dropped from normal builds.
+    'import.meta.env.VITE_ENABLE_TEST_GAMES': JSON.stringify(
+      process.env.VITE_ENABLE_TEST_GAMES ?? '',
+    ),
+  },
   plugins: [
     react(),
     tailwindcss(),

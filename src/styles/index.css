@@ -5,6 +5,7 @@
 
 /* shadcn/ui design tokens */
 :root {
+  --felt: #14532d;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -27,6 +28,7 @@
 }
 
 .dark {
+  --felt: #0f3d22;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -78,5 +80,37 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
+  /* While a table is open: no pull-to-refresh, rubber banding or page scroll. */
+  html.table-open,
+  html.table-open body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+}
+
+/* --- Card table -------------------------------------------------------------------------- */
+
+@utility card-table {
+  /* Card width scales with the shorter side so cards fit in portrait and landscape phones. */
+  --card-w: clamp(3.25rem, min(17vw, 12dvh), 6.5rem);
+  --card-h: calc(var(--card-w) * 1.4);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.08), transparent 65%), var(--felt);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility px-safe {
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
 }
