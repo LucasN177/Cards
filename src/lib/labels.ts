@@ -1,5 +1,11 @@
 import type { Difficulty } from '@/engine'
-import type { DeckStyle, GameSpeed, SoundVolume, ThemePreference } from '@/stores/settingsStore'
+import type {
+  BarPosition,
+  DeckStyle,
+  GameSpeed,
+  SoundVolume,
+  ThemePreference,
+} from '@/stores/settingsStore'
 
 export const DIFFICULTY_LABELS: Readonly<Record<Difficulty, string>> = {
   beginner: 'Anfänger',
@@ -11,6 +17,11 @@ export const THEME_LABELS: Readonly<Record<ThemePreference, string>> = {
   system: 'System',
   light: 'Hell',
   dark: 'Dunkel',
+}
+
+export const BAR_POSITION_LABELS: Readonly<Record<BarPosition, string>> = {
+  top: 'Oben',
+  bottom: 'Unten',
 }
 
 export const DECK_STYLE_LABELS: Readonly<Record<DeckStyle, string>> = {

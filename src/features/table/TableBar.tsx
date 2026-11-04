@@ -14,7 +14,7 @@ interface TableBarProps {
 export function TableBar({ title, canUndo, onExit, onUndo, onRestart, onRules }: TableBarProps) {
   const iconButton = 'size-11 text-white hover:bg-white/15 hover:text-white'
   return (
-    <header className="flex items-center gap-1 bg-black/20 pt-safe px-safe">
+    <header className="app-bar flex items-center gap-1 bg-black/20 pt-safe px-safe">
       <Button
         variant="ghost"
         size="icon"

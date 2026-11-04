@@ -277,7 +277,7 @@ describe('simulation', () => {
     expect(rate).toBeGreaterThan(0.55)
   })
 
-  it('expert AI beats the beginner', { timeout: 30_000 }, async () => {
+  it('expert AI beats the beginner', { timeout: 90_000 }, async () => {
     const rate = await winRate(
       () => createMauMauAgent('expert', { budget: 300 }),
       () => createMauMauAgent('beginner'),

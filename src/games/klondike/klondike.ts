@@ -223,13 +223,9 @@ export function findHint(state: KlondikeState): KlondikeHint | null {
       offer(move, 3)
       continue
     }
-    if (from.zone === 'foundation') {
-      // Taking a card back only helps if something then fits onto it.
-      const card = state.foundations[from.suit].at(-1)!
-      const others = [...stockCards, ...state.tableau.flatMap((p) => p.cards.slice(p.hidden))]
-      if (others.some((c) => canStack(c, card))) offer(move, 6)
-      continue
-    }
+    // Taking a card back from a foundation is never a hint: the next hint would put it right back.
+    // It still counts against a dead end (see `retrievalHelps`).
+    if (from.zone === 'foundation') continue
     const pile = state.tableau[from.pile]!
     if (from.index === pile.hidden && pile.hidden > 0)
       offer(move, 2) // uncovers a card
@@ -246,14 +242,29 @@ export function findHint(state: KlondikeState): KlondikeHint | null {
   return (best as { hint: KlondikeHint } | null)?.hint ?? null
 }
 
+/** Could taking a card back from a foundation let another card be built onto it? */
+function retrievalHelps(state: KlondikeState): boolean {
+  const others = [
+    ...reachableStockCards(state),
+    ...state.tableau.flatMap((p) => p.cards.slice(p.hidden)),
+  ]
+  return moveActions(state).some((move) => {
+    if (move.from.zone !== 'foundation') return false
+    const card = state.foundations[move.from.suit].at(-1)!
+    return others.some((c) => canStack(c, card))
+  })
+}
+
 /** True when no move can make progress any more (see `findHint`). */
 export const isStuck = (state: KlondikeState) =>
-  !state.resigned && foundationCount(state.foundations) < 52 && findHint(state) === null
+  !state.resigned &&
+  foundationCount(state.foundations) < 52 &&
+  findHint(state) === null &&
+  !retrievalHelps(state)
 
 function withHint(state: KlondikeState) {
   const hint = findHint(state)
-  const over = state.resigned || foundationCount(state.foundations) === 52
-  return { hint, stuck: !over && hint === null }
+  return { hint, stuck: hint === null && isStuck(state) }
 }
 
 // --- Game definition ---------------------------------------------------------------------------

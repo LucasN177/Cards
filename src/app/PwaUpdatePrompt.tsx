@@ -32,7 +32,7 @@ export function PwaUpdatePrompt() {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-lg border bg-card p-4 text-sm text-card-foreground shadow-lg"
+      className="app-toast fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-lg border bg-card p-4 text-sm text-card-foreground shadow-lg"
     >
       <p className="flex-1">
         {needRefresh

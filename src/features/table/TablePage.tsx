@@ -109,16 +109,18 @@ function Table({ match, title }: { match: Match; title: string }) {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.25rem)] z-30 mx-auto w-fit rounded-full bg-black/60 px-4 py-1.5 text-sm text-white"
+              className="app-bar-note pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.25rem)] z-30 mx-auto w-fit rounded-full bg-black/60 px-4 py-1.5 text-sm text-white"
             >
               Gespeicherte Partie fortgesetzt
             </motion.p>
           )}
         </AnimatePresence>
         {Body ? (
-          <Suspense fallback={<div className="flex-1" />}>
-            <Body session={session} humanId={HUMAN_ID} />
-          </Suspense>
+          <div className="app-bar-body flex min-h-0 flex-1 flex-col">
+            <Suspense fallback={<div className="flex-1" />}>
+              <Body session={session} humanId={HUMAN_ID} />
+            </Suspense>
+          </div>
         ) : (
           <p className="flex flex-1 items-center justify-center p-6 text-center text-white">
             Für dieses Spiel gibt es noch keinen Spieltisch.

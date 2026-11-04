@@ -114,3 +114,21 @@ describe('theme', () => {
     expect(html).not.toHaveClass('dark')
   })
 })
+
+describe('app bar position', () => {
+  it('can be moved to the bottom on phones and is remembered on the device', async () => {
+    const { useApplyBarPosition } = await import('./useTheme')
+    function Probe() {
+      useApplyBarPosition()
+      return null
+    }
+    render(<Probe />)
+    expect(document.documentElement.dataset.bar).toBe('top')
+
+    const { user } = renderRoute('/settings')
+    await user.click(await screen.findByRole('radio', { name: 'Unten' }))
+    expect(useSettings.getState().barPosition).toBe('bottom')
+    expect(JSON.parse(localStorage.getItem('cards:settings')!).state.barPosition).toBe('bottom')
+    expect(document.documentElement.dataset.bar).toBe('bottom')
+  })
+})

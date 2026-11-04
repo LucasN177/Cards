@@ -12,7 +12,7 @@ const NAV_ITEMS = [
 export function Layout() {
   return (
     <div className="flex min-h-svh flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b bg-background/90 pt-safe backdrop-blur">
+      <header className="app-bar sticky top-0 z-40 border-b bg-background/90 pt-safe backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-safe">
           <Link
             to="/"
@@ -42,7 +42,7 @@ export function Layout() {
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 pt-6 px-safe pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pt-10">
+      <main className="app-bar-body mx-auto w-full max-w-6xl flex-1 pt-6 px-safe pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pt-10">
         <Outlet />
       </main>
       <PwaUpdatePrompt />

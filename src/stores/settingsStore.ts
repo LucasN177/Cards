@@ -6,6 +6,8 @@ export type ThemePreference = 'system' | 'light' | 'dark'
 export type DeckStyle = 'french' | 'german'
 export type GameSpeed = 'slow' | 'normal' | 'fast'
 export type SoundVolume = 'low' | 'medium' | 'high'
+/** Where the app bar sits on phones (narrow screens). */
+export type BarPosition = 'top' | 'bottom'
 
 /** Last used setup per game, so the setup screen starts with the player's preferred choice. */
 export interface GamePreferences {
@@ -19,6 +21,7 @@ export interface GamePreferences {
 export interface Settings {
   readonly playerName: string
   readonly theme: ThemePreference
+  readonly barPosition: BarPosition
   readonly deckStyle: DeckStyle
   readonly gameSpeed: GameSpeed
   readonly animations: boolean
@@ -40,6 +43,7 @@ interface SettingsActions {
 export const DEFAULT_SETTINGS: Settings = {
   playerName: 'Du',
   theme: 'system',
+  barPosition: 'top',
   deckStyle: 'french',
   gameSpeed: 'normal',
   animations: true,

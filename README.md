@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau** and **Solitaire**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -24,8 +24,8 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [ ] Poker (Texas Hold'em)
 - [ ] Blackjack
 - [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, hint button, auto-finish, dead-end hint, give up
-- [ ] Spider Solitaire
-- [ ] FreeCell
+- [x] Spider Solitaire – one, two or four suits, finished runs are put away automatically
+- [x] FreeCell – run moves limited by free cells and empty piles, safe cards go to the foundations by themselves (optional)
 - [x] Mau-Mau – single games or matches over 3/5/10 rounds, with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
 - [ ] Crazy Eights
 - [ ] Hearts
@@ -136,6 +136,7 @@ Track performance and improve over time. Recording can be switched off in the se
 ### Customization
 
 - [x] Light and dark themes
+- [x] App bar at the top or bottom on phones (portrait and landscape), stored on the device
 - [x] Multiple card designs
 - [ ] Custom table backgrounds
 - [x] Configurable animations – also follows the system's "reduce motion" setting
@@ -189,8 +190,11 @@ src
 ├── ai/            Shared AI building blocks (random agent) and the AI web worker
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
 │   ├── mau-mau/
-│   └── klondike/
-├── features/      App features: card rendering, table, setup, rules, statistics, settings
+│   ├── klondike/  (shown as "Solitär")
+│   ├── freecell/
+│   └── spider/
+├── features/      App features: card rendering, table, solitaire board pieces, setup, rules,
+│                  statistics, settings, sound
 ├── stores/        Zustand stores: settings, running match, statistics
 ├── components/    Shared UI components (shadcn/ui)
 └── app/           App shell, routing, layout, theme, PWA prompt
@@ -277,7 +281,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire ✓, next: FreeCell, Spider |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider ✓; next: Blackjack, Crazy Eights, Schwimmen, Durak, President |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

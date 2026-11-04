@@ -134,8 +134,13 @@ interface AiAgent<State, Action> {
    - **M7 – Solitär (Klondike-Regeln) ✅:** 1 oder 3 Karten ziehen, Tippen = bester Zug, Kartenreihen
      ziehen, automatisches Ablegen am Ende, Sackgassen-Hinweis, Aufgeben (zählt als Niederlage), Regelwerk;
      Hochformat: Stapel/Ablagen über den Reihen, Querformat: seitlich, damit die Reihen Platz haben
-   - **M8 – FreeCell:** freie Zellen, Mehrfachzüge nach Anzahl freier Zellen
-   - **M9 – Spider:** 1, 2 oder 4 Farben
+   - **M8 – FreeCell ✅:** freie Zellen, Mehrfachzüge nach (freie Zellen + 1) × 2^(leere Reihen),
+     sichere Karten automatisch auf die Ablagen (abschaltbar, mit Undo), Tipp, Sackgasse
+   - **M9 – Spider ✅:** 1, 2 oder 4 Farben, Folgen nur in einer Farbe, fertige König-bis-Ass-Folgen
+     werden abgelegt, Austeilen nur ohne leere Reihe, Tipp, Sackgasse
+   - Gemeinsame Bausteine in `features/solitaire` (Reihen mit mitziehenden Folgen, Ablageflächen,
+     Tipp-Markierung, Statuszeile, Layout für Hoch- und Querformat); ein Regressionstest stellt
+     sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
@@ -149,6 +154,8 @@ interface AiAgent<State, Action> {
 - **Mehrere Runden:** `engine/scoring` (Gesamtwertung, Rangfolge, Sieger); Spiele aktivieren es
   mit `supportsSeries` (Mau-Mau); Spiellänge 1/3/5/10 Runden im Setup; Zwischenstand und
   „Nächste Runde“ im Ergebnis-Dialog; Serienstand übersteht Neuladen
+- **Leiste unten (Handy):** Einstellung „Leiste auf dem Handy: Oben/Unten“ für App- und
+  Tisch-Leiste, gespeichert auf dem Gerät; greift auf Handys hoch und quer, Safe Areas wandern mit
 - **Solitär-Tipp:** markiert den sinnvollsten nächsten Zug; teilt sich die Logik mit der
   Sackgassen-Erkennung
 

@@ -104,13 +104,44 @@
     radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.08), transparent 65%), var(--felt);
 }
 
+/* Safe-area paddings read variables, so a bar moved to the bottom can take over the inset. */
 @utility pt-safe {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, env(safe-area-inset-top));
 }
 @utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom, env(safe-area-inset-bottom));
 }
 @utility px-safe {
   padding-left: max(0.75rem, env(safe-area-inset-left));
   padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+
+/* --- App bar at the bottom on phones (setting "Leiste auf dem Handy: Unten") ---------------- */
+
+/* Phones: narrow screens, and touch screens held sideways (low height). */
+@media (max-width: 639.98px), (pointer: coarse) and (max-height: 500px) {
+  html[data-bar='bottom'] .app-bar {
+    order: 9999;
+    top: auto;
+    bottom: 0;
+    border-bottom-width: 0;
+    border-top-width: 1px;
+    --safe-top: 0px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* The content above the bar now meets the notch, but no longer the home indicator. */
+  html[data-bar='bottom'] .app-bar-body {
+    --safe-bottom: 0px;
+    padding-top: env(safe-area-inset-top);
+  }
+  /* Regular pages keep their own top spacing on top of the notch. */
+  html[data-bar='bottom'] main.app-bar-body {
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+  }
+  html[data-bar='bottom'] .app-toast {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+  html[data-bar='bottom'] .app-bar-note {
+    top: calc(env(safe-area-inset-top) + 0.5rem);
+  }
 }

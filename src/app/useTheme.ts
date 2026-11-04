@@ -24,3 +24,11 @@ export function useApplyTheme() {
     return () => media.removeEventListener('change', apply)
   }, [preference])
 }
+
+/** Mirrors the "app bar at the bottom on phones" setting to <html data-bar>, used by CSS. */
+export function useApplyBarPosition() {
+  const position = useSettings((s) => s.barPosition)
+  useEffect(() => {
+    document.documentElement.dataset.bar = position
+  }, [position])
+}

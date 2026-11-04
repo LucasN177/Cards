@@ -1,19 +1,19 @@
-import { motion, useMotionValue } from 'framer-motion'
-import { Lightbulb, RotateCcw } from 'lucide-react'
-import {
-  type CSSProperties,
-  type RefObject,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react'
+import { RotateCcw } from 'lucide-react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { deepEqual, type GameSession, SUITS, type Suit, type SuitedCard } from '@/engine'
-import { cardName } from '@/features/cards/cardFaces'
+import { deepEqual, type GameSession, SUITS, type Suit } from '@/engine'
 import { PlayingCard } from '@/features/cards/PlayingCard'
-import { playSound } from '@/features/sound/sound'
 import { SuitSymbol } from '@/features/cards/SuitSymbol'
+import {
+  type CardHandlers,
+  type DragZone,
+  EmptySlot,
+  LooseCard,
+  SolitaireStatus,
+  TableauPile,
+} from '@/features/solitaire/board'
+import { useDropZones, useFlash, useHintTimer, useSize } from '@/features/solitaire/hooks'
+import { playSound } from '@/features/sound/sound'
 import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { cn } from '@/lib/utils'
 import { useSettings } from '@/stores/settingsStore'
@@ -28,27 +28,9 @@ import {
   type Source,
   type Target,
 } from './klondike'
-import { klondikeLayout, pileOffsets } from './layout'
+import { klondikeLayout } from './layout'
 
 type KlondikeSession = GameSession<KlondikeState, KlondikeAction, KlondikeOptions, KlondikeView>
-type DragZone = 'top' | 'tableau' | null
-
-// --- Layout ------------------------------------------------------------------------------------
-
-function useSize(ref: RefObject<HTMLElement | null>) {
-  const [size, setSize] = useState({ width: 0, height: 0 })
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const measure = () => setSize({ width: element.clientWidth, height: element.clientHeight })
-    measure()
-    if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(measure)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [ref])
-  return size
-}
 
 const parseDrop = (key: string): Target => {
   const [zone, value] = key.split(':')
@@ -56,190 +38,6 @@ const parseDrop = (key: string): Target => {
     ? { zone: 'foundation', suit: value as Suit }
     : { zone: 'tableau', pile: Number(value) }
 }
-
-// --- Pieces ------------------------------------------------------------------------------------
-
-function EmptySlot({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={cn(
-        'flex h-(--card-h) w-(--card-w) items-center justify-center rounded-[7%] border-2 border-dashed border-white/30 text-white/50',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  )
-}
-
-interface CardHandlers {
-  readonly interactive: boolean
-  readonly flash: string | null
-  /** Hint: card to move and where it should go. */
-  readonly hintCard: string | null
-  readonly hintTarget: string | null
-  readonly onTap: (from: Source, cardId: string) => void
-  readonly onDrop: (from: Source, x: number, y: number) => void
-  readonly onDragZone: (zone: DragZone) => void
-}
-
-/** A single draggable / tappable card (waste top, foundation top). */
-function LooseCard({
-  card,
-  from,
-  zone,
-  handlers,
-  tapToMove = true,
-}: {
-  card: SuitedCard
-  from: Source
-  zone: DragZone
-  handlers: CardHandlers
-  tapToMove?: boolean
-}) {
-  const style = useSettings((s) => s.deckStyle)
-  const dragged = useRef(false)
-  return (
-    <motion.button
-      type="button"
-      layoutId={card.id}
-      aria-label={cardName(card, style)}
-      disabled={!handlers.interactive}
-      className="relative rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
-      drag={handlers.interactive}
-      dragSnapToOrigin
-      dragMomentum={false}
-      whileDrag={{ scale: 1.06, zIndex: 100 }}
-      onDragStart={() => {
-        dragged.current = true
-        handlers.onDragZone(zone)
-      }}
-      onDragEnd={(_, info) =>
-        handlers.onDrop(from, info.point.x - window.scrollX, info.point.y - window.scrollY)
-      }
-      onDragTransitionEnd={() => handlers.onDragZone(null)}
-      onClick={() => {
-        if (dragged.current) {
-          dragged.current = false
-          return
-        }
-        if (tapToMove) handlers.onTap(from, card.id)
-      }}
-    >
-      <PlayingCard
-        card={card}
-        topIndex
-        className={cn(
-          handlers.flash === card.id && 'ring-4 ring-red-400',
-          handlers.hintCard === card.id && 'animate-pulse ring-4 ring-yellow-300',
-        )}
-      />
-    </motion.button>
-  )
-}
-
-function TableauPile({
-  index,
-  pile,
-  cardHeight,
-  areaHeight,
-  handlers,
-  registerDrop,
-}: {
-  index: number
-  pile: KlondikeView['tableau'][number]
-  cardHeight: number
-  areaHeight: number
-  handlers: CardHandlers
-  registerDrop: (key: string) => (element: HTMLElement | null) => void
-}) {
-  const style = useSettings((s) => s.deckStyle)
-  // Shared offsets: dragging a card moves every card lying on top of it.
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const [runStart, setRunStart] = useState<number | null>(null)
-  const [dragging, setDragging] = useState(false)
-  const dragged = useRef(false)
-  const { down, up } = pileOffsets(pile.hidden, pile.cards.length, cardHeight, areaHeight)
-  // Hint target: mark where the card would land (top card or the empty pile).
-  const targeted = handlers.hintTarget === `tableau:${index}`
-
-  return (
-    <div
-      ref={registerDrop(`tableau:${index}`)}
-      role="group"
-      aria-label={`Reihe ${index + 1}`}
-      className="relative h-full"
-      style={{ zIndex: dragging ? 20 : undefined }}
-    >
-      {pile.hidden === 0 && pile.cards.length === 0 && (
-        <EmptySlot className={cn('text-xs', targeted && 'ring-4 ring-yellow-300/80')}>K</EmptySlot>
-      )}
-      {Array.from({ length: pile.hidden }, (_, i) => (
-        <PlayingCard
-          key={`hidden-${i}`}
-          faceDown
-          className="absolute left-0"
-          style={{ top: i * down }}
-        />
-      ))}
-      {pile.cards.map((card, k) => {
-        const from: Source = { zone: 'tableau', pile: index, index: pile.hidden + k }
-        const moving = runStart !== null && k >= runStart
-        return (
-          <motion.button
-            key={card.id}
-            type="button"
-            layoutId={card.id}
-            aria-label={cardName(card, style)}
-            disabled={!handlers.interactive}
-            className="absolute left-0 rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
-            style={{
-              top: pile.hidden * down + k * up,
-              zIndex: moving && dragging ? 100 + k : k,
-              ...(moving ? { x, y } : {}),
-            }}
-            drag={handlers.interactive}
-            dragSnapToOrigin
-            dragMomentum={false}
-            onPointerDown={() => setRunStart(k)}
-            onDragStart={() => {
-              dragged.current = true
-              setDragging(true)
-              handlers.onDragZone('tableau')
-            }}
-            onDragEnd={(_, info) =>
-              handlers.onDrop(from, info.point.x - window.scrollX, info.point.y - window.scrollY)
-            }
-            onDragTransitionEnd={() => {
-              setDragging(false)
-              handlers.onDragZone(null)
-            }}
-            onClick={() => {
-              if (dragged.current) {
-                dragged.current = false
-                return
-              }
-              handlers.onTap(from, card.id)
-            }}
-          >
-            <PlayingCard
-              card={card}
-              topIndex
-              className={cn(
-                handlers.flash === card.id && 'ring-4 ring-red-400',
-                handlers.hintCard === card.id && 'animate-pulse ring-4 ring-yellow-300',
-                targeted && k === pile.cards.length - 1 && 'ring-4 ring-yellow-300/80',
-              )}
-            />
-          </motion.button>
-        )
-      })}
-    </div>
-  )
-}
-
-// --- Table -------------------------------------------------------------------------------------
 
 export default function KlondikeTable({ session: anySession, humanId }: GameBodyProps) {
   const session = anySession as unknown as KlondikeSession
@@ -249,27 +47,20 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
   const tableauRef = useRef<HTMLDivElement>(null)
   const root = useSize(rootRef)
   const tableau = useSize(tableauRef)
-  const drops = useRef(new Map<string, HTMLElement>())
-  const [flash, setFlash] = useState<string | null>(null)
+  const drops = useDropZones()
+  const { flash, trigger: flashCard } = useFlash(() => playSound('invalid'))
+  const hintTimer = useHintTimer(version)
   const [dragZone, setDragZone] = useState<DragZone>(null)
   const [autoFinishing, setAutoFinishing] = useState(false)
-  const [confirmResign, setConfirmResign] = useState(false)
-  // The hint stays visible until the next move (version change) or for a few seconds.
-  const [hintAt, setHintAt] = useState<number | null>(null)
 
   const view = session.view(humanId)
   const legal = session.legalActions(humanId)
   const over = session.isOver
   // Until the first measurement (and in tests without layout) assume a phone-sized table.
   const { landscape, cardWidth, cardHeight } = klondikeLayout(root.width || 360, root.height || 640)
-
-  const registerDrop = (key: string) => (element: HTMLElement | null) => {
-    if (element) drops.current.set(key, element)
-    else drops.current.delete(key)
-  }
   const dispatch = (action: KlondikeAction) => session.dispatch(humanId, action)
 
-  const activeHint = hintAt === version && !over ? view.hint : null
+  const activeHint = hintTimer.active && !over ? view.hint : null
   let hintCard: string | null = null
   let hintTarget: string | null = null
   if (activeHint?.type === 'draw') hintTarget = 'stock'
@@ -283,13 +74,8 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
     }
     hintTarget = to.zone === 'foundation' ? `foundation:${to.suit}` : `tableau:${to.pile}`
   }
-  const showHint = () => {
-    const at = version
-    setHintAt(at)
-    setTimeout(() => setHintAt((current) => (current === at ? null : current)), 4000)
-  }
 
-  const handlers: CardHandlers = {
+  const handlers: CardHandlers<Source> = {
     interactive: !over && !autoFinishing,
     hintCard,
     hintTarget,
@@ -297,20 +83,13 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
     onTap(from, cardId) {
       const move = bestMove(view, legal, from)
       if (move) dispatch(move)
-      else {
-        playSound('invalid')
-        setFlash(cardId)
-        setTimeout(() => setFlash(null), 450)
-      }
+      else flashCard(cardId)
     },
     onDrop(from, x, y) {
-      for (const [key, element] of drops.current) {
-        const rect = element.getBoundingClientRect()
-        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) continue
-        const action: KlondikeAction = { type: 'move', from, to: parseDrop(key) }
-        if (legal.some((a) => deepEqual(a, action))) dispatch(action)
-        return
-      }
+      const key = drops.find(x, y)
+      if (!key) return
+      const action: KlondikeAction = { type: 'move', from, to: parseDrop(key) }
+      if (legal.some((a) => deepEqual(a, action))) dispatch(action)
     },
     onDragZone: setDragZone,
   }
@@ -323,10 +102,7 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
     return () => clearTimeout(timer)
   }, [finishMove, session, humanId, version])
 
-  const vars = {
-    '--card-w': `${cardWidth}px`,
-    '--card-h': `${cardHeight}px`,
-  } as CSSProperties
+  const vars = { '--card-w': `${cardWidth}px`, '--card-h': `${cardHeight}px` } as CSSProperties
 
   const wasteShown = view.waste.slice(view.options.drawCount === 3 ? -3 : -1)
   const stock = (
@@ -365,22 +141,19 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
       aria-label="Ablage"
     >
       {wasteShown.length === 0 && <EmptySlot />}
-      {wasteShown.map((card, i) => {
-        const isTop = i === wasteShown.length - 1
-        return (
-          <div
-            key={card.id}
-            className="absolute top-0"
-            style={{ left: `calc(var(--card-w) * ${i * 0.3})` }}
-          >
-            {isTop ? (
-              <LooseCard card={card} from={{ zone: 'waste' }} zone="top" handlers={handlers} />
-            ) : (
-              <PlayingCard card={card} topIndex layoutId={card.id} />
-            )}
-          </div>
-        )
-      })}
+      {wasteShown.map((card, i) => (
+        <div
+          key={card.id}
+          className="absolute top-0"
+          style={{ left: `calc(var(--card-w) * ${i * 0.3})` }}
+        >
+          {i === wasteShown.length - 1 ? (
+            <LooseCard card={card} from={{ zone: 'waste' }} zone="top" handlers={handlers} />
+          ) : (
+            <PlayingCard card={card} topIndex layoutId={card.id} />
+          )}
+        </div>
+      ))}
     </div>
   )
 
@@ -389,7 +162,7 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
     return (
       <div
         key={suit}
-        ref={registerDrop(`foundation:${suit}`)}
+        ref={drops.register(`foundation:${suit}`)}
         role="group"
         aria-label={`Ablage ${suit}: ${view.foundations[suit].length} Karten`}
         className={cn(
@@ -429,14 +202,18 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
       }}
     >
       {view.tableau.map((pile, index) => (
-        <TableauPile
+        <TableauPile<Source>
           key={index}
-          index={index}
-          pile={pile}
+          label={`Reihe ${index + 1}`}
+          dropKey={`tableau:${index}`}
+          hidden={pile.hidden}
+          cards={pile.cards}
+          sourceAt={(k) => ({ zone: 'tableau', pile: index, index: pile.hidden + k })}
+          emptyLabel="K"
           cardHeight={cardHeight}
           areaHeight={tableau.height}
           handlers={handlers}
-          registerDrop={registerDrop}
+          registerDrop={drops.register}
         />
       ))}
     </div>
@@ -470,32 +247,19 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
           {piles}
         </div>
       )}
-      {view.stuck && !over && (
-        <div
-          role="status"
-          className="mx-auto mt-2 flex w-full max-w-md flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl bg-black/40 px-4 py-2.5 text-center text-sm text-white"
-        >
-          <p>
-            <strong>Keine sinnvollen Züge mehr.</strong> Nimm Züge zurück oder gib auf.
-          </p>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-9"
-            onClick={() => dispatch({ type: 'resign' })}
-          >
-            Aufgeben
-          </Button>
-        </div>
-      )}
-      <div
-        className="flex min-h-11 flex-wrap items-center justify-center gap-x-3 gap-y-1 py-1 text-sm text-white"
-        aria-live="polite"
+      <SolitaireStatus
+        info={
+          <>
+            Züge: {view.moves}
+            {view.recycles > 0 && ` · Durchgänge: ${view.recycles}`}
+          </>
+        }
+        over={over}
+        stuck={view.stuck}
+        canHint={view.hint !== null && !autoFinishing}
+        onHint={hintTimer.show}
+        onResign={() => dispatch({ type: 'resign' })}
       >
-        <span className="text-white/80 tabular-nums">
-          Züge: {view.moves}
-          {view.recycles > 0 && ` · Durchgänge: ${view.recycles}`}
-        </span>
         {canAutoFinish(view) && !autoFinishing && (
           <Button
             size="sm"
@@ -506,50 +270,7 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
             Automatisch ablegen
           </Button>
         )}
-        {!over && !view.stuck && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-9 text-white hover:bg-white/15 hover:text-white"
-            onClick={showHint}
-            disabled={!view.hint || autoFinishing}
-          >
-            <Lightbulb /> Tipp
-          </Button>
-        )}
-        {!over &&
-          !view.stuck &&
-          (confirmResign ? (
-            <span className="flex items-center gap-2">
-              Wirklich aufgeben?
-              <Button
-                size="sm"
-                variant="destructive"
-                className="h-9"
-                onClick={() => dispatch({ type: 'resign' })}
-              >
-                Ja
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-9 text-white hover:bg-white/15 hover:text-white"
-                onClick={() => setConfirmResign(false)}
-              >
-                Nein
-              </Button>
-            </span>
-          ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-9 text-white hover:bg-white/15 hover:text-white"
-              onClick={() => setConfirmResign(true)}
-            >
-              Aufgeben
-            </Button>
-          ))}
-      </div>
+      </SolitaireStatus>
     </div>
   )
 }

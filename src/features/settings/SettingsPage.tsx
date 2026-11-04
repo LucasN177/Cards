@@ -15,12 +15,14 @@ import { Switch } from '@/components/ui/switch'
 import { deleteAllSaves } from '@/features/persistence/savedGames'
 import { playSound } from '@/features/sound/sound'
 import {
+  BAR_POSITION_LABELS,
   DECK_STYLE_LABELS,
   GAME_SPEED_LABELS,
   SOUND_VOLUME_LABELS,
   THEME_LABELS,
 } from '@/lib/labels'
 import {
+  type BarPosition,
   type DeckStyle,
   type GameSpeed,
   type SoundVolume,
@@ -141,6 +143,19 @@ export function SettingsPage() {
             choices={entries(THEME_LABELS)}
             onChange={(theme) => settings.update({ theme })}
           />
+          <div className="space-y-1">
+            <ChoiceGroup<BarPosition>
+              label="Leiste auf dem Handy"
+              value={settings.barPosition}
+              choices={entries(BAR_POSITION_LABELS)}
+              onChange={(barPosition) => settings.update({ barPosition })}
+            />
+            <p className="text-sm text-muted-foreground">
+              Unten ist die Navigation mit dem Daumen leichter erreichbar – auch die Leiste am
+              Spieltisch. Gilt auf Handys, hochkant und quer; auf Tablets und am Computer bleibt sie
+              oben.
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor={deckId}>Kartenblatt</Label>
             <Select

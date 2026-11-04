@@ -63,6 +63,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // Simulation tests keep CPUs busy; UI tests running next to them need some slack.
+    testTimeout: 20_000,
     alias: {
       'virtual:pwa-register/react': fileURLToPath(
         new URL('./src/test/mocks/pwa-register-react.ts', import.meta.url),
