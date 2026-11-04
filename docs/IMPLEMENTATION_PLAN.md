@@ -142,6 +142,10 @@ interface AiAgent<State, Action> {
      Tipp-Markierung, Statuszeile, Layout für Hoch- und Querformat); ein Regressionstest stellt
      sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
+   - **M13 – Schwimmen (31) ✅:** 2–9 Spieler, 32 Karten, Tauschen (eine/alle), Schieben (neue
+     Mitte, wenn alle schieben), Klopfen (jeder noch ein Zug), 31 = Feuer (verliert der
+     Niedrigste oder alle anderen), 2–4 Leben plus Schwimmen, Ende sobald alle Menschen raus
+     sind; KI in drei Stufen (Tausch-Bewertung, Klopf-Schwelle)
    - **M12 – Blackjack ✅:** Chips (Start 100), Einsatz 5/10/25, 5/10/20 Runden, Karte, Stehen,
      Verdoppeln, Teilen (geteilte Asse nur eine Karte), Blackjack 3:2, ein oder sechs Decks,
      Bank zieht optional auf weiche 17, Tipp nach Grundstrategie

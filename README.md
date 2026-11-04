@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -40,7 +40,7 @@ Popular card games with regional rules and variations.
 - [ ] Doppelkopf
 - [ ] Schafkopf
 - [ ] Doppelkopf with different rule sets
-- [ ] Schwimmen (31)
+- [x] Schwimmen (31) – 2–9 players, swap one or all cards, pass (new middle when everybody passes), knock, 31 ends the round ("Feuer"), 2–4 lives plus swimming, three AI levels
 - [ ] Durak
 - [ ] Rommé
 - [ ] Canasta
@@ -193,6 +193,7 @@ src
 │   ├── crazy-eights/
 │   ├── hearts/
 │   ├── blackjack/
+│   ├── schwimmen/
 │   ├── klondike/  (shown as "Solitär")
 │   ├── freecell/
 │   └── spider/
@@ -284,7 +285,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack ✓; next: Schwimmen, President, Durak |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen ✓; next: President, Durak |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 
