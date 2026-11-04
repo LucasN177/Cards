@@ -53,9 +53,11 @@ function Table({ match, title }: { match: Match; title: string }) {
   const { session } = match
   const version = useSessionVersion(session)
   const [rulesOpen, setRulesOpen] = useState(false)
+  // A game may hold the opponents back, e.g. while it shows a summary between two hands.
+  const [bodyPaused, setBodyPaused] = useState(false)
   const [showResumed, setShowResumed] = useState(match.resumed)
   // Opponents wait while the rules are open.
-  useAiTurns(session, rulesOpen)
+  useAiTurns(session, rulesOpen || bodyPaused)
   useWakeLock()
   useGameSounds(session, HUMAN_ID, match.resumed)
   const navigate = useNavigate()
@@ -118,7 +120,7 @@ function Table({ match, title }: { match: Match; title: string }) {
         {Body ? (
           <div className="app-bar-body flex min-h-0 flex-1 flex-col">
             <Suspense fallback={<div className="flex-1" />}>
-              <Body session={session} humanId={HUMAN_ID} />
+              <Body session={session} humanId={HUMAN_ID} onPauseChange={setBodyPaused} />
             </Suspense>
           </div>
         ) : (

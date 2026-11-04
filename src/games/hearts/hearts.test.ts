@@ -1,0 +1,306 @@
+import { createRandomAgent } from '@/ai'
+import { parseCards, type PlayerInfo, Rng, simulateGame, type SuitedCard } from '@/engine'
+import { choosePass, createHeartsAgent, determinize } from './ai'
+import {
+  DEFAULT_HEARTS_OPTIONS,
+  type HeartsAction,
+  heartsGame,
+  type HeartsOptions,
+  type HeartsState,
+  type HeartsView,
+  passTargetOf,
+  playableCards,
+  trickPoints,
+} from '.'
+
+const rules = heartsGame
+const order = ['a', 'b', 'c', 'd']
+const players: PlayerInfo[] = order.map((id) => ({ id, name: id, kind: 'ai' }))
+const cards = (codes: string) => parseCards(codes) as SuitedCard[]
+
+/** A hand in the playing phase with the given cards (all other fields neutral). */
+function playing(spec: {
+  hands: Record<string, string>
+  trick?: [string, string][]
+  turn?: string
+  tricksPlayed?: number
+  heartsBroken?: boolean
+  taken?: Record<string, string>
+  options?: Partial<HeartsOptions>
+}): HeartsState {
+  const empty = Object.fromEntries(order.map((p) => [p, []]))
+  return {
+    order,
+    hands: Object.fromEntries(order.map((p) => [p, cards(spec.hands[p] ?? '')])),
+    phase: 'playing',
+    handNumber: 0,
+    passes: Object.fromEntries(order.map((p) => [p, null])),
+    received: empty,
+    trick: (spec.trick ?? []).map(([player, code]) => ({ player, card: cards(code)[0]! })),
+    lastTrick: null,
+    turn: spec.turn ?? 'a',
+    heartsBroken: spec.heartsBroken ?? false,
+    tricksPlayed: spec.tricksPlayed ?? 1,
+    handTricks: [],
+    taken: Object.fromEntries(order.map((p) => [p, cards(spec.taken?.[p] ?? '')])),
+    scores: Object.fromEntries(order.map((p) => [p, 0])),
+    handResults: [],
+    moons: Object.fromEntries(order.map((p) => [p, 0])),
+    events: [],
+    options: { ...DEFAULT_HEARTS_OPTIONS, ...spec.options },
+    rng: [1, 2, 3, 4],
+  }
+}
+
+const ids = (list: readonly SuitedCard[]) => list.map((c) => c.id)
+
+describe('setup and passing', () => {
+  it('deals 13 cards each and starts with passing to the left', () => {
+    const state = rules.setup({ players, options: DEFAULT_HEARTS_OPTIONS, seed: 1 })
+    expect(order.map((p) => state.hands[p]!.length)).toEqual([13, 13, 13, 13])
+    expect(state.phase).toBe('passing')
+    expect(rules.playerView(state, 'a').passTarget).toBe('b')
+  })
+
+  it('rotates the direction: left, right, across, none', () => {
+    expect(passTargetOf(order, 'a', 'left')).toBe('b')
+    expect(passTargetOf(order, 'a', 'right')).toBe('d')
+    expect(passTargetOf(order, 'a', 'across')).toBe('c')
+    expect(passTargetOf(order, 'a', 'none')).toBeNull()
+  })
+
+  it('exchanges three cards once everybody has chosen, then the two of clubs leads', () => {
+    let state = rules.setup({ players, options: DEFAULT_HEARTS_OPTIONS, seed: 2 })
+    const passed: Record<string, string[]> = {}
+    for (const p of order) {
+      const pick = ids(state.hands[p]!.slice(0, 3))
+      passed[p] = pick
+      expect(rules.validateAction!(state, p, { type: 'pass', cardIds: pick })).toBeNull()
+      state = rules.applyAction(state, p, { type: 'pass', cardIds: pick })
+    }
+    expect(state.phase).toBe('playing')
+    expect(ids(state.hands['b']!)).toEqual(expect.arrayContaining(passed['a']!))
+    expect(ids(rules.playerView(state, 'b').received)).toEqual(expect.arrayContaining(passed['a']!))
+    expect(state.hands[state.turn]!.some((c) => c.id === '2C')).toBe(true)
+    expect(rules.legalActions(state, state.turn)).toEqual([{ type: 'play', cardId: '2C' }])
+  })
+
+  it('rejects passing anything but exactly three own cards', () => {
+    const state = rules.setup({ players, options: DEFAULT_HEARTS_OPTIONS, seed: 1 })
+    const hand = ids(state.hands['a']!)
+    expect(
+      rules.validateAction!(state, 'a', { type: 'pass', cardIds: hand.slice(0, 2) }),
+    ).not.toBeNull()
+    expect(
+      rules.validateAction!(state, 'a', { type: 'pass', cardIds: [hand[0]!, hand[0]!, hand[1]!] }),
+    ).not.toBeNull()
+    expect(
+      rules.validateAction!(state, 'a', {
+        type: 'pass',
+        cardIds: ids(state.hands['b']!).slice(0, 3),
+      }),
+    ).not.toBeNull()
+  })
+
+  it('skips passing without the variant', () => {
+    const state = rules.setup({
+      players,
+      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false },
+      seed: 1,
+    })
+    expect(state.phase).toBe('playing')
+  })
+})
+
+describe('playing', () => {
+  it('must follow suit', () => {
+    const state = playing({ hands: { b: '5C KC 3H QS' }, trick: [['a', '9C']], turn: 'b' })
+    expect(ids(playableCards(state, 'b'))).toEqual(['5C', 'KC'])
+  })
+
+  it('allows no points in the first trick unless there is nothing else', () => {
+    const state = playing({
+      hands: { b: '3H QS 8D' },
+      trick: [['a', '2C']],
+      turn: 'b',
+      tricksPlayed: 0,
+    })
+    expect(ids(playableCards(state, 'b'))).toEqual(['8D'])
+    const onlyPoints = playing({
+      hands: { b: '3H QS' },
+      trick: [['a', '2C']],
+      turn: 'b',
+      tricksPlayed: 0,
+    })
+    expect(ids(playableCards(onlyPoints, 'b'))).toEqual(['3H', 'QS'])
+  })
+
+  it('cannot lead hearts before they are broken (unless holding only hearts)', () => {
+    expect(ids(playableCards(playing({ hands: { a: '3H 5C' } }), 'a'))).toEqual(['5C'])
+    expect(ids(playableCards(playing({ hands: { a: '3H 5C' }, heartsBroken: true }), 'a'))).toEqual(
+      ['3H', '5C'],
+    )
+    expect(ids(playableCards(playing({ hands: { a: '3H 9H' } }), 'a'))).toEqual(['3H', '9H'])
+  })
+
+  it('gives the trick to the highest card of the led suit and breaks hearts', () => {
+    let state = playing({ hands: { a: '9C 2D', b: 'KD 4D', c: '3H 5S', d: 'JC 7D' } })
+    state = rules.applyAction(state, 'a', { type: 'play', cardId: '9C' })
+    state = rules.applyAction(state, 'b', { type: 'play', cardId: 'KD' })
+    state = rules.applyAction(state, 'c', { type: 'play', cardId: '3H' })
+    expect(state.heartsBroken).toBe(true)
+    state = rules.applyAction(state, 'd', { type: 'play', cardId: 'JC' })
+    expect(state.lastTrick?.winner).toBe('d')
+    expect(state.turn).toBe('d')
+    expect(trickPoints(state.taken['d']!)).toBe(1)
+  })
+})
+
+describe('scoring', () => {
+  /** Plays the last trick so the hand gets scored. */
+  function finishHand(taken: Record<string, string>, options?: Partial<HeartsOptions>) {
+    const state = playing({
+      hands: { a: '2C', b: '3C', c: '4C', d: '5C' },
+      taken,
+      tricksPlayed: 12,
+      options: { targetScore: 0, ...options },
+    })
+    let next = state
+    for (const p of order)
+      next = rules.applyAction(next, p, { type: 'play', cardId: next.hands[p]![0]!.id })
+    return next
+  }
+  const allHearts = '2H 3H 4H 5H 6H 7H 8H 9H 10H JH QH KH AH'
+
+  it('counts one point per heart and 13 for the queen of spades', () => {
+    const end = finishHand({ a: '2H 3H', b: 'QS', c: '4H' })
+    expect(end.phase).toBe('over')
+    expect(end.handResults[0]).toEqual({ a: 2, b: 13, c: 1, d: 0 })
+    expect(rules.result(end)).toMatchObject({ winners: ['d'], lowerScoreIsBetter: true })
+  })
+
+  it('shoots the moon: 26 for everybody else, or −26 for the shooter', () => {
+    expect(finishHand({ a: `${allHearts} QS` }).handResults[0]).toEqual({
+      a: 0,
+      b: 26,
+      c: 26,
+      d: 26,
+    })
+    expect(finishHand({ a: `${allHearts} QS` }, { shootTheMoon: 'self' }).handResults[0]).toEqual({
+      a: -26,
+      b: 0,
+      c: 0,
+      d: 0,
+    })
+  })
+
+  it('subtracts ten for the jack of diamonds with that variant', () => {
+    expect(finishHand({ b: 'JD 2H' }, { jackOfDiamonds: true }).handResults[0]).toMatchObject({
+      b: -9,
+    })
+    expect(finishHand({ b: 'JD 2H' }).handResults[0]).toMatchObject({ b: 1 })
+  })
+
+  it('deals a new hand until somebody reaches the target score', () => {
+    const state = playing({
+      hands: { a: '2C', b: '3C', c: '4C', d: '5C' },
+      taken: { b: 'QS' },
+      tricksPlayed: 12,
+      options: { targetScore: 50 },
+    })
+    let next = state
+    for (const p of order)
+      next = rules.applyAction(next, p, { type: 'play', cardId: next.hands[p]![0]!.id })
+    expect(next.phase).toBe('passing')
+    expect(next.handNumber).toBe(1)
+    expect(next.scores['b']).toBe(13)
+    expect(order.every((p) => next.hands[p]!.length === 13)).toBe(true)
+    expect(rules.playerView(next, 'a').passTarget).toBe('d') // second hand passes right
+  })
+})
+
+describe('AI', () => {
+  it('passes the queen of spades and high hearts', () => {
+    expect(choosePass(cards('QS 3S AH KH 2C 4C 5D 6D 7D 8D 9C 10C JC'))).toEqual(['QS', 'AH', 'KH'])
+  })
+
+  it('builds hidden worlds that respect voids and passed cards', () => {
+    const state = rules.setup({
+      players,
+      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false },
+      seed: 3,
+    })
+    const view: HeartsView = {
+      ...rules.playerView(state, 'a'),
+      voids: { a: [], b: ['spades'], c: [], d: [] },
+      passedTo: { player: 'c', cards: cards('KH') },
+    }
+    const rng = Rng.fromSeed(1)
+    for (let i = 0; i < 30; i++) {
+      const world = determinize(view, 'a', rng)
+      expect(order.map((p) => world.hands[p]!.length)).toEqual([13, 13, 13, 13])
+      expect(world.hands['b']!.some((c) => c.suit === 'spades')).toBe(false)
+      const all = order.flatMap((p) => ids(world.hands[p]!))
+      expect(new Set(all).size).toBe(52)
+    }
+  })
+})
+
+describe('simulation', () => {
+  const random = () => createRandomAgent<HeartsView, HeartsAction>()
+
+  it(
+    'plays whole games to the target score without breaking the rules',
+    { timeout: 60_000 },
+    async () => {
+      for (let seed = 0; seed < 15; seed++) {
+        const { result, session } = await simulateGame(heartsGame, {
+          players,
+          agents: Object.fromEntries(
+            order.map((p, i) => [p, i % 2 ? random() : createHeartsAgent('intermediate')]),
+          ),
+          seed,
+        })
+        const state = session.state
+        expect(Math.max(...order.map((p) => state.scores[p]!))).toBeGreaterThanOrEqual(100)
+        // Every hand hands out exactly 26 points (or 78 after a moon shot).
+        for (const hand of state.handResults) {
+          expect([26, 78]).toContain(order.reduce((sum, p) => sum + hand[p]!, 0))
+        }
+        expect(result.winners.length).toBeGreaterThan(0)
+      }
+    },
+  )
+
+  async function averagePoints(make: () => ReturnType<typeof createHeartsAgent>, hands: number) {
+    let points = 0
+    for (let seed = 0; seed < hands; seed++) {
+      const { session } = await simulateGame(heartsGame, {
+        players,
+        agents: {
+          a: make(),
+          b: createHeartsAgent('intermediate'),
+          c: createHeartsAgent('intermediate'),
+          d: createHeartsAgent('intermediate'),
+        },
+        options: { targetScore: 0 },
+        seed: 1000 + seed,
+      })
+      points += session.state.scores['a']!
+    }
+    return points / hands
+  }
+
+  // A fair share is 6.5 points per hand; deterministic seeds keep these stable.
+  it(
+    'the beginner takes clearly more points than the intermediate AI',
+    { timeout: 60_000 },
+    async () => {
+      expect(await averagePoints(() => createHeartsAgent('beginner'), 60)).toBeGreaterThan(8)
+    },
+  )
+
+  it('the expert takes fewer points than the intermediate AI', { timeout: 120_000 }, async () => {
+    expect(await averagePoints(() => createHeartsAgent('expert'), 30)).toBeLessThan(6.5)
+  })
+})

@@ -15,6 +15,16 @@ export interface HandProps {
   /** Dropping a dragged card inside this element plays it. */
   readonly dropTarget?: RefObject<HTMLElement | null>
   readonly onDragActiveChange?: (active: boolean) => void
+  /**
+   * Choosing cards instead of playing them (e.g. passing three cards in Hearts): a tap toggles
+   * the card, chosen cards are lifted. Dragging is off in this mode.
+   */
+  readonly selection?: {
+    readonly selectedIds: ReadonlySet<CardId>
+    readonly onToggle: (card: Card) => void
+  }
+  /** Cards to point out, e.g. the ones just received. */
+  readonly highlightIds?: ReadonlySet<CardId>
 }
 
 function useElementWidth(ref: RefObject<HTMLElement | null>) {
@@ -45,6 +55,8 @@ export function Hand({
   onPlay,
   dropTarget,
   onDragActiveChange,
+  selection,
+  highlightIds,
 }: HandProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const probeRef = useRef<HTMLDivElement>(null)
@@ -68,7 +80,13 @@ export function Hand({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full" role="group" aria-label="Deine Karten">
+    <div
+      ref={containerRef}
+      // isolate: the cards' z-indices stay inside the hand and never cover dialogs.
+      className="relative isolate w-full"
+      role="group"
+      aria-label="Deine Karten"
+    >
       {/* Invisible probe to measure the current card width (it depends on the viewport). */}
       <div
         ref={probeRef}
@@ -86,7 +104,9 @@ export function Hand({
           >
             {row.map((card, index) => {
               const playable = enabled && isPlayable(card)
-              const isSelected = card.id === selected
+              const isSelected = selection
+                ? selection.selectedIds.has(card.id)
+                : card.id === selected
               return (
                 <motion.button
                   key={card.id}
@@ -102,12 +122,13 @@ export function Hand({
                   )}
                   style={{
                     marginLeft: index === 0 ? 0 : spacing - cardWidth,
-                    // A lifted card comes to the front so the second tap always hits it.
-                    zIndex: isSelected ? 500 : rowIndex * 100 + index,
+                    // A lifted card comes to the front so the second tap always hits it. Not when choosing
+                    // several cards: then the neighbours must stay tappable.
+                    zIndex: isSelected && !selection ? 500 : rowIndex * 100 + index,
                   }}
                   animate={{ y: isSelected ? '-22%' : 0 }}
                   whileHover={playable ? { y: isSelected ? '-22%' : '-8%' } : undefined}
-                  drag={playable}
+                  drag={playable && !selection}
                   dragSnapToOrigin
                   dragMomentum={false}
                   whileDrag={{ scale: 1.08, zIndex: 100 }}
@@ -131,12 +152,22 @@ export function Hand({
                       return
                     }
                     if (!playable) return
+                    if (selection) {
+                      selection.onToggle(card)
+                      return
+                    }
                     const direct = event.detail === 0 || pointerType.current === 'mouse'
                     if (direct || isSelected) play(card)
                     else setSelectedId(card.id)
                   }}
                 >
-                  <PlayingCard card={card} className={cn(isSelected && 'ring-4 ring-yellow-300')} />
+                  <PlayingCard
+                    card={card}
+                    className={cn(
+                      isSelected && 'ring-4 ring-yellow-300',
+                      !isSelected && highlightIds?.has(card.id) && 'ring-4 ring-sky-300',
+                    )}
+                  />
                 </motion.button>
               )
             })}

@@ -8,4 +8,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     klondike: lazy(() => import('./klondike/KlondikeRules')),
     freecell: lazy(() => import('./freecell/FreeCellRules')),
     spider: lazy(() => import('./spider/SpiderRules')),
+    hearts: lazy(() => import('./hearts/HeartsRules')),
   }

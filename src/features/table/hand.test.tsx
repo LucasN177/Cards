@@ -96,3 +96,24 @@ describe('handRows', () => {
     expect(handRows(12, 351, 64)).toBe(2)
   })
 })
+
+describe('Hand selection mode', () => {
+  it('toggles cards instead of playing them and marks highlighted cards', () => {
+    const onPlay = vi.fn()
+    const onToggle = vi.fn()
+    render(
+      <Hand
+        cards={cards}
+        enabled
+        onPlay={onPlay}
+        selection={{ selectedIds: new Set(['10S']), onToggle }}
+        highlightIds={new Set(['AC'])}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Herz Dame' }), { detail: 0 })
+    expect(onToggle).toHaveBeenCalledWith(cards[0])
+    expect(onPlay).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Pik 10' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('img', { name: 'Kreuz Ass' })).toHaveClass('ring-sky-300')
+  })
+})

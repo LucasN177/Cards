@@ -143,6 +143,12 @@ interface AiAgent<State, Action> {
      sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
+   - **M10 – Hearts ✅:** vier Spieler, Weitergeben (links, rechts, gegenüber, keine), Kreuz 2
+     beginnt, keine Punkte im ersten Stich, Herz brechen, Shoot the Moon (26 für die anderen
+     oder −26), Karo-Bube −10 (Variante), Partie bis 50/100 Punkte oder eine Hand; KI Anfänger,
+     Fortgeschritten (Heuristik), Experte (Determinization mit Fehlfarben und bekannten
+     weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
+     Auswahlmodus der Hand zum Weitergeben
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
 5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage
 6. Texas Hold'em Poker

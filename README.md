@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Hearts**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -28,7 +28,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [x] FreeCell – run moves limited by free cells and empty piles, safe cards go to the foundations by themselves (optional)
 - [x] Mau-Mau – single games or matches over 3/5/10 rounds, with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
 - [ ] Crazy Eights
-- [ ] Hearts
+- [x] Hearts – passing (left, right, across, none), shoot the moon, optional jack of diamonds, play to 50/100 points or a single hand
 - [ ] Spades
 - [ ] Bridge
 
@@ -73,7 +73,7 @@ Play against computer-controlled opponents with different strategies and difficu
 - [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level.
+Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand.
 
 ---
 
@@ -190,6 +190,7 @@ src
 ├── ai/            Shared AI building blocks (random agent) and the AI web worker
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
 │   ├── mau-mau/
+│   ├── hearts/
 │   ├── klondike/  (shown as "Solitär")
 │   ├── freecell/
 │   └── spider/
@@ -281,7 +282,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider ✓; next: Blackjack, Crazy Eights, Schwimmen, Durak, President |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts ✓; next: Blackjack, Crazy Eights, Schwimmen, Durak, President |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

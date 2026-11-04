@@ -17,6 +17,8 @@ export type AnySession = GameSession<unknown, unknown, object, unknown>
 export interface GameBodyProps {
   readonly session: AnySession
   readonly humanId: PlayerId
+  /** Holds the computer opponents back, e.g. while a summary between two hands is shown. */
+  readonly onPauseChange?: (paused: boolean) => void
 }
 
 export const HUMAN_ID = 'you'
