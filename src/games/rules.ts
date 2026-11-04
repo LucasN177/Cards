@@ -10,4 +10,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     freecell: lazy(() => import('./freecell/FreeCellRules')),
     spider: lazy(() => import('./spider/SpiderRules')),
     hearts: lazy(() => import('./hearts/HeartsRules')),
+    blackjack: lazy(() => import('./blackjack/BlackjackRules')),
   }

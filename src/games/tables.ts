@@ -11,6 +11,7 @@ export const GAME_TABLES: Readonly<Record<string, TableComponent>> = {
   freecell: lazy(() => import('./freecell/FreeCellTable')),
   spider: lazy(() => import('./spider/SpiderTable')),
   hearts: lazy(() => import('./hearts/HeartsTable')),
+  blackjack: lazy(() => import('./blackjack/BlackjackTable')),
   // Same condition as TEST_GAMES_ENABLED, written inline so the bundler can drop the chunk.
   ...(import.meta.env.DEV || import.meta.env.VITE_ENABLE_TEST_GAMES === 'true'
     ? { 'high-card': lazy(() => import('./high-card/HighCardTable')) }

@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -22,7 +22,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 Traditional card games that are easy to learn but offer plenty of strategic depth.
 
 - [ ] Poker (Texas Hold'em)
-- [ ] Blackjack
+- [x] Blackjack – chips over 5/10/20 rounds, double, split, 3:2 blackjacks, one or six decks, optional dealer hit on soft 17, basic-strategy hint
 - [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, hint button, auto-finish, dead-end hint, give up
 - [x] Spider Solitaire – one, two or four suits, finished runs are put away automatically
 - [x] FreeCell – run moves limited by free cells and empty piles, safe cards go to the foundations by themselves (optional)
@@ -192,6 +192,7 @@ src
 │   ├── mau-mau/   (also the rules engine of crazy-eights/)
 │   ├── crazy-eights/
 │   ├── hearts/
+│   ├── blackjack/
 │   ├── klondike/  (shown as "Solitär")
 │   ├── freecell/
 │   └── spider/
@@ -283,7 +284,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights ✓; next: Blackjack, Schwimmen, President, Durak |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack ✓; next: Schwimmen, President, Durak |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 
