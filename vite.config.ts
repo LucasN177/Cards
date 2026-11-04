@@ -3,12 +3,48 @@ import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
   // GitHub Pages serves the app from https://<user>.github.io/Cards/
   base: process.env.GITHUB_PAGES ? '/Cards/' : '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      // Ask the user before activating a new version, so a running game is never reloaded unexpectedly.
+      registerType: 'prompt',
+      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon-180x180.png'],
+      manifest: {
+        name: 'Cards',
+        short_name: 'Cards',
+        description: 'Classic card games. Smarter opponents. Endless fun.',
+        lang: 'de',
+        theme_color: '#14532d',
+        background_color: '#14532d',
+        display: 'standalone',
+        orientation: 'any',
+        start_url: '.',
+        scope: '.',
+        icons: [
+          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webp,mp3,ogg}'],
+        cleanupOutdatedCaches: true,
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -19,5 +55,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    alias: {
+      'virtual:pwa-register/react': fileURLToPath(
+        new URL('./src/test/mocks/pwa-register-react.ts', import.meta.url),
+      ),
+    },
   },
 })

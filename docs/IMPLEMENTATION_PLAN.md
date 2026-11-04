@@ -81,6 +81,7 @@ interface AiAgent<State, Action> {
 - Vitest (+ Testing Library, jsdom) und Playwright eingerichtet
 - Linting (oxlint) und Formatierung (Prettier)
 - GitHub-Actions-Workflows: CI (Lint, Typecheck, Tests, Build) und Deploy auf GitHub Pages
+- PWA: installierbar, Offline-Cache per Service Worker (vite-plugin-pwa), Update-Hinweis statt Auto-Reload, App-Icons
 - Leere Ordnerstruktur gemäß Abschnitt 3
 
 ### Phase 1 – Engine-Fundament
@@ -131,7 +132,6 @@ interface AiAgent<State, Action> {
 - Tutorials/Regelerklärungen, Übungsmodus, Replays
 - Sound & Musik, Tischhintergründe, Avatare
 - Achievements, Challenge-/Turniermodus, lokaler Multiplayer (Hot-Seat)
-- PWA / Offline-Support
 
 ### Später (außerhalb des Initial-Scopes)
 
