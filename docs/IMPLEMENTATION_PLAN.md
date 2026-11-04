@@ -142,6 +142,16 @@ interface AiAgent<State, Action> {
 5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage
 6. Texas Hold'em Poker
 
+### Zwischenschritt – Lücken geschlossen ✅
+
+- **Sounds:** per Web Audio API synthetisiert (Karte, Ziehen, Mischen, Fehler, Sieg/Niederlage),
+  keine Audiodateien; Einstellung an/aus und Lautstärke; generisch aus dem Zugverlauf abgeleitet
+- **Mehrere Runden:** `engine/scoring` (Gesamtwertung, Rangfolge, Sieger); Spiele aktivieren es
+  mit `supportsSeries` (Mau-Mau); Spiellänge 1/3/5/10 Runden im Setup; Zwischenstand und
+  „Nächste Runde“ im Ergebnis-Dialog; Serienstand übersteht Neuladen
+- **Solitär-Tipp:** markiert den sinnvollsten nächsten Zug; teilt sich die Logik mit der
+  Sackgassen-Erkennung
+
 ### Phase 6 – Fortgeschrittene KI
 
 - Generisches Determinization / Information-Set-MCTS für Stichspiele

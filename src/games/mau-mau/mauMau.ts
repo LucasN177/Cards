@@ -273,6 +273,7 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
   id: 'mau-mau',
   name: 'Mau-Mau',
   players: { min: 2, max: 6 },
+  supportsSeries: true,
   defaultOptions: DEFAULT_MAU_MAU_OPTIONS,
   optionFields: [
     {

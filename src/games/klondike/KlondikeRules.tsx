@@ -94,6 +94,10 @@ export default function KlondikeRules({ options }: RulesProps) {
             Karten auf den Ablagestapeln lassen sich nur durch Ziehen zurückholen, damit nichts aus
             Versehen passiert.
           </li>
+          <li>
+            <strong>Tipp</strong> markiert einen sinnvollen nächsten Zug: die Karte pulsiert gelb,
+            ihr Ziel ist umrandet – oder der Stapel, wenn du weiter aufdecken solltest.
+          </li>
           <li>Jeder Zug lässt sich mit dem Pfeil oben rechts zurücknehmen.</li>
         </RulesList>
       </RulesSection>

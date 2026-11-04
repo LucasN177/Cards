@@ -23,6 +23,8 @@ export interface GameDefinition<S, A, O extends object = Record<string, never>, 
   readonly optionFields?: readonly GameOptionField[]
   /** Whether players may take back moves. Default: true. */
   readonly allowUndo?: boolean
+  /** Several rounds can be played as one series with added-up scores (e.g. Mau-Mau). */
+  readonly supportsSeries?: boolean
 
   setup(setup: GameSetup<O>): S
 

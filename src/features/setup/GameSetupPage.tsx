@@ -21,6 +21,11 @@ import { useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 import { RuleOptions } from './RuleOptions'
 
+const ROUND_CHOICES = [1, 3, 5, 10].map((n) => ({
+  value: String(n),
+  label: n === 1 ? 'Eine Runde' : `${n} Runden`,
+}))
+
 export function GameSetupPage() {
   const { gameId = '' } = useParams()
   const game = findCatalogGame(gameId)
@@ -39,6 +44,7 @@ export function GameSetupPage() {
     Math.min(Math.max(saved?.opponents ?? minOpponents, minOpponents), maxOpponents),
   )
   const [difficulty, setDifficulty] = useState<Difficulty>(saved?.difficulty ?? 'beginner')
+  const [rounds, setRounds] = useState(saved?.rounds ?? 1)
   const [options, setOptions] = useState<Record<string, unknown>>(() => ({
     ...(game?.definition?.defaultOptions as Record<string, unknown> | undefined),
     ...saved?.options,
@@ -71,7 +77,7 @@ export function GameSetupPage() {
   })
 
   const start = () => {
-    const preferences = { ...saved, opponents, difficulty, options }
+    const preferences = { ...saved, opponents, difficulty, options, rounds }
     setGamePreferences(game.id, preferences)
     if (game.definition) useMatch.getState().start(game.definition, preferences)
     void navigate(`/play/${game.id}`)
@@ -114,6 +120,14 @@ export function GameSetupPage() {
                 onChange={setDifficulty}
               />
             </>
+          )}
+          {game.definition.supportsSeries && (
+            <ChoiceGroup
+              label="Spiellänge"
+              value={String(rounds)}
+              choices={ROUND_CHOICES}
+              onChange={(value) => setRounds(Number(value))}
+            />
           )}
           {game.definition.optionFields && game.definition.optionFields.length > 0 && (
             <section aria-labelledby="rule-options" className="space-y-4 border-t pt-5">

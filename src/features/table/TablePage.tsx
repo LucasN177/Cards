@@ -4,9 +4,10 @@ import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/app/ErrorPage'
 import { gameRegistry } from '@/engine'
 import { RulesSheet } from '@/features/rules/RulesPage'
+import { useGameSounds } from '@/features/sound/useGameSounds'
 import { buildMatchRecord } from '@/features/stats/record'
 import { GAME_TABLES } from '@/games/tables'
-import { type Match, persistMatch, useMatch } from '@/stores/matchStore'
+import { type Match, persistMatch, seriesResults, useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 import { useStats } from '@/stores/statsStore'
 import { GameOverDialog } from './GameOverDialog'
@@ -56,6 +57,7 @@ function Table({ match, title }: { match: Match; title: string }) {
   // Opponents wait while the rules are open.
   useAiTurns(session, rulesOpen)
   useWakeLock()
+  useGameSounds(session, HUMAN_ID, match.resumed)
   const navigate = useNavigate()
   const start = useMatch((s) => s.start)
   const Body = GAME_TABLES[session.game.id]
@@ -67,7 +69,10 @@ function Table({ match, title }: { match: Match; title: string }) {
     persistMatch(match)
     if (session.isOver && !recorded.current) {
       recorded.current = true
-      const record = buildMatchRecord(session, HUMAN_ID, match.startedAt)
+      const record = buildMatchRecord(session, HUMAN_ID, match.startedAt, Date.now(), {
+        round: match.series.completed.length + 1,
+        rounds: match.series.rounds,
+      })
       if (record) void useStats.getState().record(record)
     }
   }, [match, session, version])
@@ -86,7 +91,11 @@ function Table({ match, title }: { match: Match; title: string }) {
     <MotionConfig reducedMotion={animations ? 'user' : 'always'}>
       <div className="fixed inset-0 flex card-table flex-col overflow-hidden">
         <TableBar
-          title={title}
+          title={
+            match.series.rounds > 1
+              ? `${title} · Runde ${match.series.completed.length + 1}/${match.series.rounds}`
+              : title
+          }
           canUndo={session.canUndo}
           onExit={exit}
           onUndo={() => session.undo()}
@@ -125,6 +134,8 @@ function Table({ match, title }: { match: Match; title: string }) {
         )}
         {session.result && (
           <GameOverDialog
+            series={{ rounds: match.series.rounds, results: seriesResults(match) }}
+            onNextRound={() => useMatch.getState().nextRound()}
             result={session.result}
             players={session.players}
             humanId={HUMAN_ID}

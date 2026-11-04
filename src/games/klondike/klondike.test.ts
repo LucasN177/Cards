@@ -12,6 +12,7 @@ import {
   canFound,
   canStack,
   DEFAULT_KLONDIKE_OPTIONS,
+  findHint,
   foundationCount,
   type KlondikeAction,
   klondikeGame,
@@ -336,4 +337,37 @@ describe('simulation', () => {
       expect(wins).toBeGreaterThan(0)
     },
   )
+})
+
+describe('hints', () => {
+  it('prefers a foundation move over everything else', () => {
+    const state = situation({
+      tableau: [{ cards: '9C 5H', hidden: 1 }, { cards: '6S' }, { cards: 'AD' }],
+      stock: 'KH',
+    })
+    expect(findHint(state)).toEqual({
+      type: 'move',
+      from: { zone: 'tableau', pile: 2, index: 0 },
+      to: { zone: 'foundation', suit: 'diamonds' },
+    })
+  })
+
+  it('suggests uncovering a hidden card next', () => {
+    const state = situation({ tableau: [{ cards: '9C 5H', hidden: 1 }, { cards: '6S' }] })
+    expect(findHint(state)).toMatchObject({ from: { zone: 'tableau', pile: 0, index: 1 } })
+  })
+
+  it('suggests turning the stock when a card in it fits', () => {
+    const state = situation({ tableau: [{ cards: '7C' }], stock: '6H 2S' })
+    expect(findHint(state)).toEqual({ type: 'draw' })
+    expect(rules.playerView(state, 'me').hint).toEqual({ type: 'draw' })
+  })
+
+  it('has no hint in a dead end', () => {
+    const state = situation({
+      tableau: [{ cards: '9C 4H', hidden: 1 }, { cards: '7C' }],
+      stock: '10D',
+    })
+    expect(findHint(state)).toBeNull()
+  })
 })

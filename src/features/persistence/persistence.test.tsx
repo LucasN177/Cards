@@ -33,7 +33,7 @@ describe('saving running games', () => {
     highCard(3)
     renderRoute('/play/high-card')
     await playFirstCard()
-    expect(readSave('high-card')?.saved.actions.length).toBeGreaterThan(0)
+    expect(readSave('high-card')?.saved?.actions.length).toBeGreaterThan(0)
 
     reopenApp()
     renderRoute('/play/high-card')
@@ -66,6 +66,7 @@ describe('saving running games', () => {
   it('starts a fresh game when a save cannot be replayed', async () => {
     highCard(3)
     writeSave({
+      gameId: 'high-card',
       saved: {
         version: 1,
         gameId: 'high-card',

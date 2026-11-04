@@ -22,6 +22,8 @@ export interface MatchRecord {
   readonly lowerScoreIsBetter: boolean
   readonly options: Readonly<Record<string, unknown>>
   readonly moves: number
+  /** Set when the game was one round of a series. */
+  readonly series?: { readonly round: number; readonly rounds: number }
   /** Game-specific numbers from `GameDefinition.summarize`. */
   readonly stats: Readonly<Record<string, number>>
 }

@@ -13,10 +13,17 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { deleteAllSaves } from '@/features/persistence/savedGames'
-import { DECK_STYLE_LABELS, GAME_SPEED_LABELS, THEME_LABELS } from '@/lib/labels'
+import { playSound } from '@/features/sound/sound'
+import {
+  DECK_STYLE_LABELS,
+  GAME_SPEED_LABELS,
+  SOUND_VOLUME_LABELS,
+  THEME_LABELS,
+} from '@/lib/labels'
 import {
   type DeckStyle,
   type GameSpeed,
+  type SoundVolume,
   type ThemePreference,
   useSettings,
 } from '@/stores/settingsStore'
@@ -174,10 +181,24 @@ export function SettingsPage() {
           />
           <ToggleRow
             label="Soundeffekte"
-            description="Geräusche beim Mischen und Ausspielen."
+            description="Geräusche beim Mischen, Ausspielen und Ziehen."
             checked={settings.sound}
-            onChange={(sound) => settings.update({ sound })}
+            onChange={(sound) => {
+              settings.update({ sound })
+              if (sound) playSound('card')
+            }}
           />
+          {settings.sound && (
+            <ChoiceGroup<SoundVolume>
+              label="Lautstärke"
+              value={settings.soundVolume}
+              choices={entries(SOUND_VOLUME_LABELS)}
+              onChange={(soundVolume) => {
+                settings.update({ soundVolume })
+                playSound('card')
+              }}
+            />
+          )}
         </CardContent>
       </Card>
 

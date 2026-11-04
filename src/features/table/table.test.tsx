@@ -29,7 +29,7 @@ describe('table', () => {
     await user.click(card!)
 
     const dialog = await screen.findByRole('dialog', {}, { timeout: 3000 })
-    const ranking = within(dialog).getByRole('list', { name: 'Ergebnis' })
+    const ranking = within(dialog).getByRole('table', { name: 'Ergebnis' })
     expect(within(ranking).getByText(/Lucas/)).toBeInTheDocument()
     expect(within(ranking).getByText(/Anna/)).toBeInTheDocument()
 

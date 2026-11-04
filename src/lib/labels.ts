@@ -1,5 +1,5 @@
 import type { Difficulty } from '@/engine'
-import type { DeckStyle, GameSpeed, ThemePreference } from '@/stores/settingsStore'
+import type { DeckStyle, GameSpeed, SoundVolume, ThemePreference } from '@/stores/settingsStore'
 
 export const DIFFICULTY_LABELS: Readonly<Record<Difficulty, string>> = {
   beginner: 'Anfänger',
@@ -22,6 +22,12 @@ export const GAME_SPEED_LABELS: Readonly<Record<GameSpeed, string>> = {
   slow: 'Langsam',
   normal: 'Normal',
   fast: 'Schnell',
+}
+
+export const SOUND_VOLUME_LABELS: Readonly<Record<SoundVolume, string>> = {
+  low: 'Leise',
+  medium: 'Mittel',
+  high: 'Laut',
 }
 
 export function playerCountLabel({ min, max }: { min: number; max: number }): string {

@@ -8,6 +8,7 @@ export function buildMatchRecord(
   humanId: PlayerId,
   startedAt: number,
   endedAt = Date.now(),
+  series?: { readonly round: number; readonly rounds: number },
 ): Omit<MatchRecord, 'id'> | null {
   const result = session.result
   if (!result) return null
@@ -38,6 +39,7 @@ export function buildMatchRecord(
     lowerScoreIsBetter: result.lowerScoreIsBetter ?? false,
     options: session.options as Record<string, unknown>,
     moves: session.history.length,
+    ...(series && series.rounds > 1 ? { series } : {}),
     stats:
       session.game.summarize?.({
         history: session.history,

@@ -1,4 +1,4 @@
-import type { SavedGame } from '@/engine'
+import type { GameResult, SavedGame } from '@/engine'
 import type { GamePreferences } from '@/stores/settingsStore'
 
 /**
@@ -7,9 +7,17 @@ import type { GamePreferences } from '@/stores/settingsStore'
  */
 const PREFIX = 'cards:save:'
 
+export interface StoredSeries {
+  readonly rounds: number
+  readonly completed: readonly GameResult[]
+}
+
 export interface StoredGame {
   readonly version: 1
-  readonly saved: SavedGame<object, unknown>
+  readonly gameId: string
+  /** The round in progress; missing between two rounds of a series. */
+  readonly saved?: SavedGame<object, unknown>
+  readonly series?: StoredSeries
   readonly preferences: GamePreferences
   readonly startedAt: number
   readonly updatedAt: number
@@ -20,7 +28,7 @@ const keyOf = (gameId: string) => `${PREFIX}${gameId}`
 export function writeSave(game: Omit<StoredGame, 'version' | 'updatedAt'>): void {
   const stored: StoredGame = { version: 1, ...game, updatedAt: Date.now() }
   try {
-    localStorage.setItem(keyOf(game.saved.gameId), JSON.stringify(stored))
+    localStorage.setItem(keyOf(game.gameId), JSON.stringify(stored))
   } catch {
     // Storage full or blocked (private mode) – the game simply is not resumable.
   }
@@ -31,7 +39,11 @@ export function readSave(gameId: string): StoredGame | null {
     const raw = localStorage.getItem(keyOf(gameId))
     if (!raw) return null
     const stored = JSON.parse(raw) as StoredGame
-    return stored.version === 1 && stored.saved?.gameId === gameId ? stored : null
+    // Saves from before series support have no top-level gameId.
+    const id = stored.gameId ?? stored.saved?.gameId
+    return stored.version === 1 && id === gameId && (stored.saved || stored.series)
+      ? { ...stored, gameId: id }
+      : null
   } catch {
     return null
   }

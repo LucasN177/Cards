@@ -85,3 +85,11 @@ test('the rules can be read before and during a game', async ({ page }) => {
   await sheet.getByRole('button', { name: 'Regeln schließen' }).click()
   await expect(sheet).toBeHidden()
 })
+
+test('a match over several rounds shows the round in the header', async ({ page }) => {
+  await useFastSettings(page)
+  await page.goto('/#/games/mau-mau')
+  await page.getByText('3 Runden', { exact: true }).click()
+  await page.getByRole('button', { name: /Spiel starten/ }).click()
+  await expect(page.getByRole('heading', { name: 'Mau-Mau · Runde 1/3' })).toBeVisible()
+})

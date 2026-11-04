@@ -73,6 +73,8 @@ export interface KlondikeView {
   readonly resigned: boolean
   /** No move can make progress any more (see `isStuck`). */
   readonly stuck: boolean
+  /** Suggested next step for the hint button. */
+  readonly hint: KlondikeHint | null
 }
 
 // --- Helpers -----------------------------------------------------------------------------------
@@ -184,47 +186,74 @@ export function reachableStockCards(state: KlondikeState): SuitedCard[] {
   return [...seen.values()]
 }
 
+/** A suggested next step: a card move, or turning the stock. */
+export type KlondikeHint = MoveAction | { readonly type: 'draw' }
+
 /**
- * True when no move can make progress any more: nothing can go to a foundation, no hidden card
- * can be uncovered and no card from the stock fits anywhere. Moves that only shift cards back and
- * forth do not count. The check errs on the side of "not stuck", so it never stops a winnable game.
+ * The most useful next step, or null if no move can make progress any more. In order of
+ * preference: a card to a foundation, uncovering a hidden card, a waste card into the tableau,
+ * freeing a card for its foundation, an empty pile for a waiting king, taking a foundation card
+ * back so something fits onto it, and finally turning the stock towards a card that fits.
+ * Moves that only shift cards back and forth never count. Errs on the side of finding a hint, so
+ * a winnable game is never reported as stuck.
  */
-export function isStuck(state: KlondikeState): boolean {
-  if (state.resigned || foundationCount(state.foundations) === 52) return false
+export function findHint(state: KlondikeState): KlondikeHint | null {
+  if (state.resigned || foundationCount(state.foundations) === 52) return null
   const tops = state.tableau.map((pile) => pile.cards.at(-1))
   const fits = (card: SuitedCard) =>
     canFound(card, state.foundations[card.suit]) || tops.some((top) => canStack(card, top))
-
   const stockCards = reachableStockCards(state)
-  if (stockCards.some(fits)) return false
-
   // A king that would profit from an empty pile (it lies on hidden cards or in the stock).
   const kingWaiting =
     stockCards.some((c) => c.rank === 'K') ||
     state.tableau.some((pile) => pile.hidden > 0 && pile.cards[pile.hidden]?.rank === 'K')
 
+  let best: { hint: KlondikeHint; rank: number } | null = null
+  const offer = (hint: KlondikeHint, rank: number) => {
+    if (!best || rank < best.rank) best = { hint, rank }
+  }
+
   for (const move of moveActions(state)) {
     const { from, to } = move
-    if (to.zone === 'foundation') return false
-    if (from.zone === 'waste') return false
+    if (to.zone === 'foundation') {
+      offer(move, 1)
+      continue
+    }
+    if (from.zone === 'waste') {
+      offer(move, 3)
+      continue
+    }
     if (from.zone === 'foundation') {
       // Taking a card back only helps if something then fits onto it.
       const card = state.foundations[from.suit].at(-1)!
-      const helps = [...stockCards, ...state.tableau.flatMap((p) => p.cards.slice(p.hidden))].some(
-        (c) => canStack(c, card),
-      )
-      if (helps) return false
+      const others = [...stockCards, ...state.tableau.flatMap((p) => p.cards.slice(p.hidden))]
+      if (others.some((c) => canStack(c, card))) offer(move, 6)
       continue
     }
     const pile = state.tableau[from.pile]!
-    if (from.index === pile.hidden && pile.hidden > 0) return false // uncovers a card
-    if (from.index === 0 && kingWaiting && state.tableau[to.pile]!.cards.length > 0) return false
-    const below = pile.cards[from.index - 1]
-    if (from.index > pile.hidden && below && canFound(below, state.foundations[below.suit])) {
-      return false // frees a card for its foundation
+    if (from.index === pile.hidden && pile.hidden > 0)
+      offer(move, 2) // uncovers a card
+    else if (from.index === 0 && kingWaiting && state.tableau[to.pile]!.cards.length > 0) {
+      offer(move, 5) // empties a pile for a king
+    } else {
+      const below = pile.cards[from.index - 1]
+      if (from.index > pile.hidden && below && canFound(below, state.foundations[below.suit])) {
+        offer(move, 4) // frees a card for its foundation
+      }
     }
   }
-  return true
+  if (!best && stockCards.some(fits)) offer({ type: 'draw' }, 7)
+  return (best as { hint: KlondikeHint } | null)?.hint ?? null
+}
+
+/** True when no move can make progress any more (see `findHint`). */
+export const isStuck = (state: KlondikeState) =>
+  !state.resigned && foundationCount(state.foundations) < 52 && findHint(state) === null
+
+function withHint(state: KlondikeState) {
+  const hint = findHint(state)
+  const over = state.resigned || foundationCount(state.foundations) === 52
+  return { hint, stuck: !over && hint === null }
 }
 
 // --- Game definition ---------------------------------------------------------------------------
@@ -353,7 +382,7 @@ export const klondikeGame = defineGame<
     recycles: state.recycles,
     won: foundationCount(state.foundations) === 52,
     resigned: state.resigned,
-    stuck: isStuck(state),
+    ...withHint(state),
   }),
 
   isTerminal: (state) => state.resigned || foundationCount(state.foundations) === 52,

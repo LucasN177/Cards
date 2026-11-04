@@ -180,6 +180,7 @@ function History({ records }: { records: readonly MatchRecord[] }) {
                   {[
                     record.players.length > 1 &&
                       `Platz ${record.placement} von ${record.players.length}`,
+                    record.series && `Runde ${record.series.round}/${record.series.rounds}`,
                     record.difficulty && DIFFICULTY_LABELS[record.difficulty],
                     `${record.humanScore} ${record.scoreLabel}`,
                     formatDuration(record.durationMs),

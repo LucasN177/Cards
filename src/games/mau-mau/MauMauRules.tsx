@@ -93,6 +93,11 @@ export default function MauMauRules({ options }: RulesProps) {
           </tbody>
         </table>
         <p>
+          <strong>Mehrere Runden:</strong> Im Spiel-Setup lässt sich die Spiellänge auf 3, 5 oder 10
+          Runden stellen. Die Strafpunkte werden addiert; wer nach der letzten Runde die wenigsten
+          hat, gewinnt das Match (bei Gleichstand entscheidet die Zahl der gewonnenen Runden).
+        </p>
+        <p>
           Sonderfall: Kann reihum niemand mehr legen oder ziehen, weil alle Karten auf den Händen
           sind, endet das Spiel. Dann gewinnt, wer die wenigsten Strafpunkte hat.
         </p>

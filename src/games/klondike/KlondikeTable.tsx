@@ -1,5 +1,5 @@
 import { motion, useMotionValue } from 'framer-motion'
-import { RotateCcw } from 'lucide-react'
+import { Lightbulb, RotateCcw } from 'lucide-react'
 import {
   type CSSProperties,
   type RefObject,
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { deepEqual, type GameSession, SUITS, type Suit, type SuitedCard } from '@/engine'
 import { cardName } from '@/features/cards/cardFaces'
 import { PlayingCard } from '@/features/cards/PlayingCard'
+import { playSound } from '@/features/sound/sound'
 import { SuitSymbol } from '@/features/cards/SuitSymbol'
 import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { cn } from '@/lib/utils'
@@ -74,6 +75,9 @@ function EmptySlot({ children, className }: { children?: React.ReactNode; classN
 interface CardHandlers {
   readonly interactive: boolean
   readonly flash: string | null
+  /** Hint: card to move and where it should go. */
+  readonly hintCard: string | null
+  readonly hintTarget: string | null
   readonly onTap: (from: Source, cardId: string) => void
   readonly onDrop: (from: Source, x: number, y: number) => void
   readonly onDragZone: (zone: DragZone) => void
@@ -125,7 +129,10 @@ function LooseCard({
       <PlayingCard
         card={card}
         topIndex
-        className={cn(handlers.flash === card.id && 'ring-4 ring-red-400')}
+        className={cn(
+          handlers.flash === card.id && 'ring-4 ring-red-400',
+          handlers.hintCard === card.id && 'animate-pulse ring-4 ring-yellow-300',
+        )}
       />
     </motion.button>
   )
@@ -154,6 +161,8 @@ function TableauPile({
   const [dragging, setDragging] = useState(false)
   const dragged = useRef(false)
   const { down, up } = pileOffsets(pile.hidden, pile.cards.length, cardHeight, areaHeight)
+  // Hint target: mark where the card would land (top card or the empty pile).
+  const targeted = handlers.hintTarget === `tableau:${index}`
 
   return (
     <div
@@ -163,7 +172,9 @@ function TableauPile({
       className="relative h-full"
       style={{ zIndex: dragging ? 20 : undefined }}
     >
-      {pile.hidden === 0 && pile.cards.length === 0 && <EmptySlot className="text-xs">K</EmptySlot>}
+      {pile.hidden === 0 && pile.cards.length === 0 && (
+        <EmptySlot className={cn('text-xs', targeted && 'ring-4 ring-yellow-300/80')}>K</EmptySlot>
+      )}
       {Array.from({ length: pile.hidden }, (_, i) => (
         <PlayingCard
           key={`hidden-${i}`}
@@ -215,7 +226,11 @@ function TableauPile({
             <PlayingCard
               card={card}
               topIndex
-              className={cn(handlers.flash === card.id && 'ring-4 ring-red-400')}
+              className={cn(
+                handlers.flash === card.id && 'ring-4 ring-red-400',
+                handlers.hintCard === card.id && 'animate-pulse ring-4 ring-yellow-300',
+                targeted && k === pile.cards.length - 1 && 'ring-4 ring-yellow-300/80',
+              )}
             />
           </motion.button>
         )
@@ -239,6 +254,8 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
   const [dragZone, setDragZone] = useState<DragZone>(null)
   const [autoFinishing, setAutoFinishing] = useState(false)
   const [confirmResign, setConfirmResign] = useState(false)
+  // The hint stays visible until the next move (version change) or for a few seconds.
+  const [hintAt, setHintAt] = useState<number | null>(null)
 
   const view = session.view(humanId)
   const legal = session.legalActions(humanId)
@@ -252,13 +269,36 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
   }
   const dispatch = (action: KlondikeAction) => session.dispatch(humanId, action)
 
+  const activeHint = hintAt === version && !over ? view.hint : null
+  let hintCard: string | null = null
+  let hintTarget: string | null = null
+  if (activeHint?.type === 'draw') hintTarget = 'stock'
+  else if (activeHint?.type === 'move') {
+    const { from, to } = activeHint
+    if (from.zone === 'waste') hintCard = view.waste.at(-1)?.id ?? null
+    else if (from.zone === 'foundation') hintCard = view.foundations[from.suit].at(-1)?.id ?? null
+    else {
+      const pile = view.tableau[from.pile]!
+      hintCard = pile.cards[from.index - pile.hidden]?.id ?? null
+    }
+    hintTarget = to.zone === 'foundation' ? `foundation:${to.suit}` : `tableau:${to.pile}`
+  }
+  const showHint = () => {
+    const at = version
+    setHintAt(at)
+    setTimeout(() => setHintAt((current) => (current === at ? null : current)), 4000)
+  }
+
   const handlers: CardHandlers = {
     interactive: !over && !autoFinishing,
+    hintCard,
+    hintTarget,
     flash,
     onTap(from, cardId) {
       const move = bestMove(view, legal, from)
       if (move) dispatch(move)
       else {
+        playSound('invalid')
         setFlash(cardId)
         setTimeout(() => setFlash(null), 450)
       }
@@ -299,7 +339,10 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
           ? `Stapel: ${view.stockCount} Karten, aufdecken`
           : 'Ablage zurück auf den Stapel legen'
       }
-      className="relative rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+      className={cn(
+        'relative rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300',
+        hintTarget === 'stock' && 'animate-pulse ring-4 ring-yellow-300',
+      )}
     >
       {view.stockCount > 0 ? (
         <>
@@ -349,7 +392,10 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
         ref={registerDrop(`foundation:${suit}`)}
         role="group"
         aria-label={`Ablage ${suit}: ${view.foundations[suit].length} Karten`}
-        className="relative h-(--card-h) w-(--card-w)"
+        className={cn(
+          'relative h-(--card-h) w-(--card-w) rounded-[7%]',
+          hintTarget === `foundation:${suit}` && 'ring-4 ring-yellow-300/80',
+        )}
       >
         <EmptySlot className="absolute inset-0">
           <svg viewBox="0 0 100 100" className="size-1/2 opacity-40" aria-hidden>
@@ -458,6 +504,17 @@ export default function KlondikeTable({ session: anySession, humanId }: GameBody
             onClick={() => setAutoFinishing(true)}
           >
             Automatisch ablegen
+          </Button>
+        )}
+        {!over && !view.stuck && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-9 text-white hover:bg-white/15 hover:text-white"
+            onClick={showHint}
+            disabled={!view.hint || autoFinishing}
+          >
+            <Lightbulb /> Tipp
           </Button>
         )}
         {!over &&

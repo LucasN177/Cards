@@ -23,10 +23,10 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 
 - [ ] Poker (Texas Hold'em)
 - [ ] Blackjack
-- [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, auto-finish, dead-end hint, give up
+- [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, hint button, auto-finish, dead-end hint, give up
 - [ ] Spider Solitaire
 - [ ] FreeCell
-- [x] Mau-Mau – with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
+- [x] Mau-Mau – single games or matches over 3/5/10 rounds, with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
 - [ ] Crazy Eights
 - [ ] Hearts
 - [ ] Spades
@@ -91,7 +91,7 @@ Every game brings its own AI through a common `AiAgent` interface. Measured in M
 - [ ] Practice mode
 - [x] Customizable card designs
 - [x] Multiple card deck styles – French and German suits
-- [ ] Sound effects and optional background music
+- [ ] Sound effects and optional background music – sound effects ✓ (synthesized, no audio files), music planned
 
 ### Game Configuration
 
@@ -99,8 +99,8 @@ Every game brings its own AI through a common `AiAgent` interface. Measured in M
 - [x] Choose AI difficulty
 - [x] Configure game rules and variations
 - [x] Select card deck styles
-- [ ] Configure scoring systems
-- [ ] Set match length and game modes
+- [ ] Configure scoring systems – totals over several rounds ✓, alternative scoring planned
+- [x] Set match length and game modes – rounds per match for games that support it
 - [x] Save preferred game settings
 
 ---
@@ -139,7 +139,7 @@ Track performance and improve over time. Recording can be switched off in the se
 - [x] Multiple card designs
 - [ ] Custom table backgrounds
 - [x] Configurable animations – also follows the system's "reduce motion" setting
-- [ ] Adjustable sound settings
+- [x] Adjustable sound settings – on/off and volume
 - [ ] Custom player names and avatars – names ✓, avatars planned
 
 ### Future Possibilities
@@ -165,6 +165,7 @@ Track performance and improve over time. Recording can be switched off in the se
 | React Router (hash routing) | Navigation that works on GitHub Pages and offline |
 | Zustand | State management (settings, running match, statistics) |
 | Framer Motion | Card animations |
+| Web Audio API | Synthesized sound effects (no audio files) |
 | vite-plugin-pwa (Workbox) | Installable app, offline cache, update prompt |
 | IndexedDB (`idb`) | Local match history |
 | Vitest + Testing Library | Unit and component tests |
@@ -183,7 +184,8 @@ src
 │   ├── cards/     Card model, deck presets (52, 36, 32, 24, Doppelkopf, Rommé, Canasta), dealing
 │   ├── core/      GameDefinition contract, GameSession (turns, validation, AI moves, undo,
 │   │              save/restore by replay), seedable RNG, registry, simulation
-│   └── players/   Seating order
+│   ├── players/   Seating order
+│   └── scoring/   Series of rounds: totals, standings, winners
 ├── ai/            Shared AI building blocks (random agent)
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
 │   ├── mau-mau/

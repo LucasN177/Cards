@@ -140,3 +140,24 @@ describe('Klondike dead end', () => {
     expect(current.resigned).toBe(true)
   })
 })
+
+describe('Klondike hint button', () => {
+  it('highlights the suggested card or the stock', async () => {
+    const { user } = renderRoute('/play/klondike')
+    const button = await screen.findByRole('button', { name: /Tipp/ })
+    await user.click(button)
+    const highlighted = document.querySelectorAll('.animate-pulse')
+    expect(highlighted.length).toBeGreaterThan(0)
+  })
+})
+
+describe('Mau-Mau setup rounds', () => {
+  it('offers the match length only for games that support series', async () => {
+    const first = renderRoute('/games/mau-mau')
+    expect(await screen.findByRole('radio', { name: '5 Runden' })).toBeInTheDocument()
+    first.unmount()
+    renderRoute('/games/klondike')
+    expect(await screen.findByRole('button', { name: /Spiel starten/ })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: '5 Runden' })).not.toBeInTheDocument()
+  })
+})
