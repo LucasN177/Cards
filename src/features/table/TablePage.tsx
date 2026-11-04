@@ -1,14 +1,16 @@
-import { MotionConfig } from 'framer-motion'
-import { Suspense, useEffect, useState } from 'react'
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/app/ErrorPage'
-import { RulesSheet } from '@/features/rules/RulesPage'
 import { gameRegistry } from '@/engine'
+import { RulesSheet } from '@/features/rules/RulesPage'
+import { buildMatchRecord } from '@/features/stats/record'
 import { GAME_TABLES } from '@/games/tables'
-import { useMatch } from '@/stores/matchStore'
+import { type Match, persistMatch, useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
+import { useStats } from '@/stores/statsStore'
 import { GameOverDialog } from './GameOverDialog'
-import { type AnySession, HUMAN_ID, useAiTurns, useSessionVersion } from './session'
+import { HUMAN_ID, useAiTurns, useSessionVersion } from './session'
 import { TableBar } from './TableBar'
 import { useWakeLock } from './useWakeLock'
 
@@ -17,14 +19,15 @@ export function TablePage() {
   const { gameId = '' } = useParams()
   const game = gameRegistry.get(gameId)
   const match = useMatch((s) => s.match)
-  const start = useMatch((s) => s.start)
 
   const current = match?.gameId === gameId ? match : null
 
-  // Deep link or reload: start a game with the saved preferences.
+  // Deep link or reload: continue the saved game if there is one, otherwise start a new one.
   useEffect(() => {
-    if (game && !current) start(game)
-  }, [game, current, start])
+    if (!game || current) return
+    const { resume, start } = useMatch.getState()
+    if (!(useSettings.getState().saveGames && resume(game))) start(game)
+  }, [game, current])
 
   useEffect(() => {
     document.documentElement.classList.add('table-open')
@@ -40,12 +43,14 @@ export function TablePage() {
   }
   if (!current) return <div className="fixed inset-0 card-table" />
 
-  return <Table key={current.id} session={current.session} title={game.name} />
+  return <Table key={current.id} match={current} title={game.name} />
 }
 
-function Table({ session, title }: { session: AnySession; title: string }) {
-  useSessionVersion(session)
+function Table({ match, title }: { match: Match; title: string }) {
+  const { session } = match
+  const version = useSessionVersion(session)
   const [rulesOpen, setRulesOpen] = useState(false)
+  const [showResumed, setShowResumed] = useState(match.resumed)
   // Opponents wait while the rules are open.
   useAiTurns(session, rulesOpen)
   useWakeLock()
@@ -53,6 +58,23 @@ function Table({ session, title }: { session: AnySession; title: string }) {
   const start = useMatch((s) => s.start)
   const Body = GAME_TABLES[session.game.id]
   const animations = useSettings((s) => s.animations)
+  const recorded = useRef(false)
+
+  // Save after every move; record the result once the game is over.
+  useEffect(() => {
+    persistMatch(match)
+    if (session.isOver && !recorded.current) {
+      recorded.current = true
+      const record = buildMatchRecord(session, HUMAN_ID, match.startedAt)
+      if (record) void useStats.getState().record(record)
+    }
+  }, [match, session, version])
+
+  useEffect(() => {
+    if (!showResumed) return
+    const timer = setTimeout(() => setShowResumed(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showResumed])
 
   const exit = () => void navigate('/')
   const restart = () => start(session.game)
@@ -69,6 +91,19 @@ function Table({ session, title }: { session: AnySession; title: string }) {
           onRestart={restart}
           onRules={() => setRulesOpen(true)}
         />
+        <AnimatePresence>
+          {showResumed && (
+            <motion.p
+              role="status"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.25rem)] z-30 mx-auto w-fit rounded-full bg-black/60 px-4 py-1.5 text-sm text-white"
+            >
+              Gespeicherte Partie fortgesetzt
+            </motion.p>
+          )}
+        </AnimatePresence>
         {Body ? (
           <Suspense fallback={<div className="flex-1" />}>
             <Body session={session} humanId={HUMAN_ID} />

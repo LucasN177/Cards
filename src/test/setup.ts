@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom/vitest'
+// jsdom has no IndexedDB; the match history uses it.
+import 'fake-indexeddb/auto'
 import { cleanup } from '@testing-library/react'
+import { resetStatsDbForTests } from '@/features/stats/statsDb'
+import { useMatch } from '@/stores/matchStore'
 import { DEFAULT_SETTINGS, useSettings } from '@/stores/settingsStore'
+import { useStats } from '@/stores/statsStore'
 
 // jsdom has no matchMedia; default to a light OS theme.
 if (!window.matchMedia) {
@@ -17,9 +22,17 @@ if (!window.matchMedia) {
     }) as MediaQueryList
 }
 
-afterEach(() => {
+afterEach(async () => {
+  // Unmount first: a mounted table would immediately start a new game after the store reset.
   cleanup()
+  useMatch.getState().clear()
   localStorage.clear()
   useSettings.setState(DEFAULT_SETTINGS)
+  useStats.setState({ records: null, error: null })
   document.documentElement.className = ''
+  await resetStatsDbForTests()
+  await new Promise<void>((resolve) => {
+    const request = indexedDB.deleteDatabase('cards')
+    request.onsuccess = request.onerror = request.onblocked = () => resolve()
+  })
 })

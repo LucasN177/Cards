@@ -390,11 +390,40 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
     })
     const best = scores[ranking[0]!]!
     const winners = state.winner ? [state.winner] : state.order.filter((id) => scores[id] === best)
-    return { scores, winners, ranking, scoreLabel: 'Strafpunkte' }
+    return { scores, winners, ranking, scoreLabel: 'Strafpunkte', lowerScoreIsBetter: true }
   },
 
   describeAction: (action) =>
     action.type === 'play'
       ? `play ${action.cardId}${action.wish ? ` wish ${action.wish}` : ''}`
       : action.type,
+
+  statFields: [
+    { key: 'cardsPlayed', label: 'Gespielte Karten' },
+    { key: 'cardsDrawn', label: 'Gezogene Karten' },
+    { key: 'jacksPlayed', label: 'Buben gespielt' },
+    { key: 'penaltyDraws', label: 'Strafkarten gezogen' },
+  ],
+
+  summarize({ history, finalState, player }) {
+    let cardsPlayed = 0
+    let cardsDrawn = 0
+    let jacksPlayed = 0
+    let penaltyDraws = 0
+    history.forEach((entry, i) => {
+      if (entry.player !== player) return
+      const { action } = entry
+      if (action.type === 'play') {
+        cardsPlayed++
+        const card = entry.stateBefore.hands[player]?.find((c) => c.id === action.cardId)
+        if (card && isRank(card, 'J')) jacksPlayed++
+      } else if (action.type === 'draw') {
+        const after = (history[i + 1]?.stateBefore ?? finalState).hands[player]?.length ?? 0
+        const drawn = Math.max(0, after - (entry.stateBefore.hands[player]?.length ?? 0))
+        cardsDrawn += drawn
+        if (entry.stateBefore.pendingDraw > 0) penaltyDraws += drawn
+      }
+    })
+    return { cardsPlayed, cardsDrawn, jacksPlayed, penaltyDraws }
+  },
 })

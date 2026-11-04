@@ -28,6 +28,8 @@ export interface GameResult {
   readonly ranking?: readonly PlayerId[]
   /** What the score means, e.g. "Strafpunkte". Defaults to "Punkte". */
   readonly scoreLabel?: string
+  /** True when fewer points are better (penalty points). */
+  readonly lowerScoreIsBetter?: boolean
 }
 
 /** Describes a rule option so the setup screen can render it without game-specific UI code. */

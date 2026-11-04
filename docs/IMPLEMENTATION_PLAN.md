@@ -101,7 +101,7 @@ interface AiAgent<State, Action> {
 - **M5 – Tisch & Karten ✅:** Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout,
   Anbindung `GameSession` ↔ React, Animationen mit Framer Motion, Drag & Drop, Spielgeschwindigkeit
 
-### Phase 3 – Erstes Spiel end-to-end: **Mau-Mau**
+### Phase 3 – Erstes Spiel end-to-end: **Mau-Mau** ✅
 
 - **M6 – Mau-Mau spielbar ✅:** Regeln mit Varianten (7 ziehen, 7 auf 7, 8 aussetzen,
   9 Richtungswechsel, Bube wünschen, Bube auf Bube, 5–7 Karten), Strafpunkte, Patt-Regel;
@@ -113,11 +113,20 @@ interface AiAgent<State, Action> {
   Fortgeschritten
 - Offen für Phase 4: Statistiken; Phase 6: KI-Berechnung in einen Web Worker verlagern
 
-### Phase 4 – Statistiken & Persistenz
+### Phase 4 – Statistiken & Persistenz ✅
 
-- Match-Historie, Siege/Niederlagen, spielspezifische Kennzahlen (IndexedDB)
-- Laufende Partie speichern/fortsetzen
-- Statistik-Dashboard
+- **Optional über die Einstellungen** („Daten & Fortschritt“): „Statistik aufzeichnen“ und
+  „Laufende Partien speichern“ (beide standardmäßig an), „Statistik löschen“ mit Bestätigung
+- Match-Historie in IndexedDB (`idb`): Ergebnis, Platzierung, Punkte, Gegnerzahl und -stärke,
+  Regeloptionen, Dauer, Züge und spielspezifische Kennzahlen (`GameDefinition.statFields` /
+  `summarize`, z. B. gespielte/gezogene Karten bei Mau-Mau)
+- Laufende Partie wird nach jedem Zug in `localStorage` gesichert (Seed + Zugliste) und beim
+  Öffnen per Replay fortgesetzt; nicht abspielbare Stände werden verworfen. „Partie fortsetzen“
+  im Setup, „Läuft“-Badge im Katalog
+- Statistik-Seite: Kennzahlen (Partien, Siegquote, längste/aktuelle Serie, Spielzeit), je Spiel
+  Durchschnitte, Bestwerte, schnellster Sieg, Ergebnisse nach Gegnerstärke, Spieldetails, Verlauf
+- Nicht aufgezeichnet werden abgebrochene Partien; Mehrrunden-Matches folgen mit dem ersten
+  Spiel, das sie braucht
 
 ### Phase 5 – Weitere Spiele (nach Komplexität)
 

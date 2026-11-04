@@ -3,11 +3,14 @@ import { Link } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CATEGORY_LABELS, type CatalogGame, type GameCategory, listCatalog } from '@/games/catalog'
+import { listSaves } from '@/features/persistence/savedGames'
 import { playerCountLabel } from '@/lib/labels'
+import { useMatch } from '@/stores/matchStore'
+import { useSettings } from '@/stores/settingsStore'
 
 const CATEGORY_ORDER: readonly GameCategory[] = ['development', 'classic', 'german', 'strategic']
 
-function GameTile({ game }: { game: CatalogGame }) {
+function GameTile({ game, running }: { game: CatalogGame; running: boolean }) {
   const playable = game.definition !== undefined
   const content = (
     <Card
@@ -21,6 +24,7 @@ function GameTile({ game }: { game: CatalogGame }) {
         <div className="flex items-start justify-between gap-2">
           <CardTitle>{game.name}</CardTitle>
           {!playable && <Badge variant="secondary">Bald</Badge>}
+          {playable && running && <Badge>Läuft</Badge>}
         </div>
         <CardDescription>{game.description}</CardDescription>
         <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
@@ -43,6 +47,10 @@ function GameTile({ game }: { game: CatalogGame }) {
 
 export function GameCatalogPage() {
   const games = listCatalog()
+  const saveGames = useSettings((s) => s.saveGames)
+  const match = useMatch((s) => s.match)
+  const running = new Set(saveGames ? listSaves() : [])
+  if (match && !match.session.isOver) running.add(match.gameId)
 
   return (
     <div className="space-y-10">
@@ -64,7 +72,7 @@ export function GameCatalogPage() {
             </h2>
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {inCategory.map((game) => (
-                <GameTile key={game.id} game={game} />
+                <GameTile key={game.id} game={game} running={running.has(game.id)} />
               ))}
             </ul>
           </section>

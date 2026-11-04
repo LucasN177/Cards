@@ -6,6 +6,7 @@ import {
   GameSession,
   type PlayerId,
   type PlayerInfo,
+  type SavedGame,
 } from '@/engine'
 import { GAME_SPEED_DELAY, type GamePreferences, useSettings } from '@/stores/settingsStore'
 
@@ -20,6 +21,17 @@ export interface GameBodyProps {
 export const HUMAN_ID = 'you'
 const OPPONENT_NAMES = ['Anna', 'Ben', 'Clara', 'David', 'Emma', 'Felix', 'Greta', 'Hugo']
 
+/** One agent per AI player, using the game's own AI (or random play as a fallback). */
+function createAgents(game: AnyGameDefinition, players: readonly PlayerInfo[]) {
+  const agents: Record<PlayerId, AiAgent<unknown, unknown>> = {}
+  for (const p of players) {
+    if (p.kind !== 'ai') continue
+    agents[p.id] =
+      game.createAgent?.(p.difficulty ?? 'beginner') ?? createRandomAgent<unknown, unknown>()
+  }
+  return agents
+}
+
 export function createSession(
   game: AnyGameDefinition,
   preferences: GamePreferences,
@@ -31,17 +43,25 @@ export function createSession(
     kind: 'ai',
     difficulty: preferences.difficulty,
   }))
-  const agents: Record<PlayerId, AiAgent<unknown, unknown>> = Object.fromEntries(
-    opponents.map((p) => [
-      p.id,
-      game.createAgent?.(preferences.difficulty) ?? createRandomAgent<unknown, unknown>(),
-    ]),
-  )
+  const players: PlayerInfo[] = [
+    { id: HUMAN_ID, name: playerName.trim() || 'Du', kind: 'human' },
+    ...opponents,
+  ]
   return new GameSession(game, {
-    players: [{ id: HUMAN_ID, name: playerName.trim() || 'Du', kind: 'human' }, ...opponents],
+    players,
     options: preferences.options as Partial<object> | undefined,
-    agents,
+    agents: createAgents(game, players),
   })
+}
+
+/** Rebuilds a saved game. Returns null if it cannot be replayed (e.g. after a rules change). */
+export function restoreSession(game: AnyGameDefinition, saved: SavedGame<object, unknown>) {
+  try {
+    return GameSession.restore(game, saved, createAgents(game, saved.players))
+  } catch (error) {
+    console.warn('Saved game could not be restored', error)
+    return null
+  }
 }
 
 /** Re-renders the component on every session change and returns the change counter. */

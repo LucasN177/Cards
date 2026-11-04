@@ -20,6 +20,10 @@ export interface Settings {
   readonly gameSpeed: GameSpeed
   readonly animations: boolean
   readonly sound: boolean
+  /** Record finished games for the statistics (stored only on this device). */
+  readonly recordStats: boolean
+  /** Keep the running game so it survives a reload or closing the app. */
+  readonly saveGames: boolean
   readonly games: Readonly<Record<string, GamePreferences>>
 }
 
@@ -36,6 +40,8 @@ export const DEFAULT_SETTINGS: Settings = {
   gameSpeed: 'normal',
   animations: true,
   sound: true,
+  recordStats: true,
+  saveGames: true,
   games: {},
 }
 

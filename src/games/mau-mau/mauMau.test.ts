@@ -343,3 +343,28 @@ describe('expert knowledge', () => {
     }
   })
 })
+
+describe('statistics', () => {
+  it('counts played and drawn cards consistently', async () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const ps = players(3)
+      const { session } = await simulateGame(mauMauGame, {
+        players: ps,
+        agents: Object.fromEntries(ps.map((p) => [p.id, createMauMauAgent('intermediate')])),
+        seed,
+      })
+      const stats = mauMauGame.summarize!({
+        history: session.history,
+        finalState: session.state,
+        player: 'a',
+      })
+      const start = session.history[0]?.stateBefore ?? session.state
+      const plays = session.history.filter((e) => e.player === 'a' && e.action.type === 'play')
+      expect(stats['cardsPlayed']).toBe(plays.length)
+      expect(stats['penaltyDraws']).toBeLessThanOrEqual(stats['cardsDrawn']!)
+      expect(start.hands['a']!.length + stats['cardsDrawn']! - stats['cardsPlayed']!).toBe(
+        session.state.hands['a']!.length,
+      )
+    }
+  })
+})

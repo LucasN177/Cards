@@ -9,11 +9,13 @@ The goal is to bring multiple card games together in one application, featuring 
 
 From traditional trick-taking games to strategic card games, Cards aims to provide a versatile platform for casual games and challenging AI opponents.
 
-> 🚧 **Work in Progress** – Cards is currently in the planning and development stage. Features and games listed below represent the project roadmap.
+▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
+
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first game (**Mau-Mau**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
-## 🃏 Planned Games
+## 🃏 Games
 
 ### ♠️ Classic Card Games
 
@@ -24,7 +26,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [ ] Solitaire / Klondike
 - [ ] Spider Solitaire
 - [ ] FreeCell
-- [x] Mau-Mau
+- [x] Mau-Mau – with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
 - [ ] Crazy Eights
 - [ ] Hearts
 - [ ] Spades
@@ -60,18 +62,18 @@ Games that focus on tactics, planning and decision-making.
 
 Play against computer-controlled opponents with different strategies and difficulty levels.
 
-- [ ] Multiple AI difficulty levels
-- [ ] Beginner, intermediate and expert opponents
+- [x] Multiple AI difficulty levels
+- [x] Beginner, intermediate and expert opponents
 - [ ] Different AI personalities and play styles
-- [ ] Game-specific AI strategies
-- [ ] Strategic decision-making
-- [ ] Card probability and hand evaluation
-- [ ] Opponent behavior analysis
+- [x] Game-specific AI strategies
+- [x] Strategic decision-making – the expert simulates many possible deals and plays each move out (determinized Monte-Carlo rollouts)
+- [x] Card probability and hand evaluation – hidden cards are sampled consistently with everything that has been seen
+- [x] Opponent behavior analysis – the expert remembers which suits an opponent could not serve, using only public moves (no cheating)
 - [ ] Adaptive AI difficulty
-- [ ] Configurable AI opponents
+- [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-The AI architecture should be modular, allowing each game to implement its own decision-making logic.
+Every game brings its own AI through a common `AiAgent` interface. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level.
 
 ---
 
@@ -79,43 +81,43 @@ The AI architecture should be modular, allowing each game to implement its own d
 
 ### Game Experience
 
-- [ ] Interactive card tables
-- [ ] Smooth card animations
-- [ ] Drag-and-drop card interactions
-- [ ] Responsive layouts for desktop, tablet and mobile
-- [ ] Configurable game speed
-- [ ] Undo and replay where game rules allow it
-- [ ] Game tutorials and rule explanations
+- [x] Interactive card tables
+- [x] Smooth card animations
+- [x] Drag-and-drop card interactions
+- [x] Responsive layouts for desktop, tablet and mobile – portrait and landscape; touch: first tap lifts a card, second tap plays it
+- [x] Configurable game speed
+- [ ] Undo and replay where game rules allow it – undo ✓, replays planned
+- [ ] Game tutorials and rule explanations – rule explanations ✓ (own page and in-game), tutorials planned
 - [ ] Practice mode
-- [ ] Customizable card designs
-- [ ] Multiple card deck styles
+- [x] Customizable card designs
+- [x] Multiple card deck styles – French and German suits
 - [ ] Sound effects and optional background music
 
 ### Game Configuration
 
-- [ ] Select the number of AI opponents
-- [ ] Choose AI difficulty
-- [ ] Configure game rules and variations
-- [ ] Select card deck styles
+- [x] Select the number of AI opponents
+- [x] Choose AI difficulty
+- [x] Configure game rules and variations
+- [x] Select card deck styles
 - [ ] Configure scoring systems
 - [ ] Set match length and game modes
-- [ ] Save preferred game settings
+- [x] Save preferred game settings
 
 ---
 
 ## 📊 Statistics & Progress
 
-Track performance and improve over time.
+Track performance and improve over time. Recording can be switched off in the settings.
 
-- [ ] Match history
-- [ ] Win/loss statistics
-- [ ] Game-specific statistics
-- [ ] Average scores and performance metrics
-- [ ] AI opponent statistics
+- [x] Match history
+- [x] Win/loss statistics
+- [x] Game-specific statistics – e.g. cards played/drawn and jacks in Mau-Mau
+- [x] Average scores and performance metrics
+- [x] AI opponent statistics – results per difficulty level
 - [ ] Achievement system
-- [ ] Personal records
-- [ ] Progress tracking
-- [ ] Statistics dashboards
+- [x] Personal records – longest winning streak, best score, fastest win
+- [x] Progress tracking – current streak, total playing time
+- [x] Statistics dashboards
 
 ---
 
@@ -123,22 +125,22 @@ Track performance and improve over time.
 
 ### Game Modes
 
-- [ ] Single-player mode
+- [x] Single-player mode
 - [ ] Local multiplayer
 - [ ] Team-based games
 - [ ] Tournament mode
-- [ ] Quick matches
-- [ ] Custom matches
+- [x] Quick matches
+- [x] Custom matches – rule variants, opponents and difficulty per game
 - [ ] Challenge mode
 
 ### Customization
 
-- [ ] Light and dark themes
-- [ ] Multiple card designs
+- [x] Light and dark themes
+- [x] Multiple card designs
 - [ ] Custom table backgrounds
-- [ ] Configurable animations
+- [x] Configurable animations – also follows the system's "reduce motion" setting
 - [ ] Adjustable sound settings
-- [ ] Custom player names and avatars
+- [ ] Custom player names and avatars – names ✓, avatars planned
 
 ### Future Possibilities
 
@@ -147,97 +149,104 @@ Track performance and improve over time.
 - [ ] Leaderboards
 - [ ] Daily challenges
 - [ ] AI-generated challenges
-- [ ] New games through a modular game system
+- [x] New games through a modular game system
 
 ---
 
 ## 🛠️ Technology Stack
 
-The application is planned around a modern TypeScript-based frontend architecture.
-
 | Technology | Purpose |
 |---|---|
-| React | User interface |
-| TypeScript | Type-safe development |
-| Vite | Development and build tooling |
-| Tailwind CSS | Styling |
-| shadcn/ui | UI components |
-| Zustand | State management |
+| React 19 | User interface |
+| TypeScript 7 | Type-safe development |
+| Vite 8 | Development and build tooling |
+| Tailwind CSS 4 | Styling |
+| shadcn/ui (Radix) | UI components |
+| React Router (hash routing) | Navigation that works on GitHub Pages and offline |
+| Zustand | State management (settings, running match, statistics) |
 | Framer Motion | Card animations |
-| Vitest | Unit testing |
-| Playwright | End-to-end testing |
-
-Additional technologies may be introduced as the project evolves.
+| vite-plugin-pwa (Workbox) | Installable app, offline cache, update prompt |
+| IndexedDB (`idb`) | Local match history |
+| Vitest + Testing Library | Unit and component tests |
+| Playwright | End-to-end tests on desktop and phone (portrait/landscape) |
+| oxlint + Prettier | Linting and formatting |
 
 ---
 
 ## 🏗️ Architecture
 
-Cards is designed around a modular game architecture.
-
-Each game should be implemented independently while sharing common components such as card rendering, player management, game state handling and AI infrastructure.
+Cards is built around a modular game architecture. The engine is plain TypeScript without React, so rules and AI are fully testable and could later run in a web worker or on a server.
 
 ```text
-Cards
-│
-├── Frontend
-│   ├── React
-│   ├── UI Components
-│   ├── Game Table
-│   └── Card Animations
-│
-├── Game Engine
-│   ├── Game State
-│   ├── Turn Management
-│   ├── Rules & Validation
-│   ├── Scoring
-│   └── Game Flow
-│
-├── Games
-│   ├── Poker
-│   ├── Blackjack
-│   ├── Skat
-│   ├── Hearts
-│   └── More Games
-│
-├── AI Engine
-│   ├── Decision Making
-│   ├── Difficulty Levels
-│   ├── Strategy Evaluation
-│   └── Game-specific AI
-│
-└── Shared Components
-    ├── Card Deck
-    ├── Playing Cards
-    ├── Player System
-    ├── Statistics
-    └── Settings
+src
+├── engine/        UI-free core
+│   ├── cards/     Card model, deck presets (52, 36, 32, 24, Doppelkopf, Rommé, Canasta), dealing
+│   ├── core/      GameDefinition contract, GameSession (turns, validation, AI moves, undo,
+│   │              save/restore by replay), seedable RNG, registry, simulation
+│   └── players/   Seating order
+├── ai/            Shared AI building blocks (random agent)
+├── games/         One folder per game: rules, AI, table UI, rules text, tests
+│   └── mau-mau/
+├── features/      App features: card rendering, table, setup, rules, statistics, settings
+├── stores/        Zustand stores: settings, running match, statistics
+├── components/    Shared UI components (shadcn/ui)
+└── app/           App shell, routing, layout, theme, PWA prompt
 ```
 
-The architecture should make it easy to add new card games without modifying the core game engine.
+Key ideas:
+
+- **Games are plugins.** A game implements `GameDefinition` (setup, legal actions, apply action, player view, result, optional rule options, AI and statistics) and is registered in `src/games/index.ts`. The engine never changes for a new game.
+- **Immutable state + actions.** Every move is an action; a game is fully defined by its seed and its action list. That powers undo, saved games and reproducible tests.
+- **Fair information.** Players and AI only ever see a `PlayerView` with hidden cards removed.
+- **Rule variants are data.** Games describe their options (`optionFields`); the setup screen renders them automatically.
+
+### Adding a game
+
+1. Create `src/games/<id>/` with the rules as a `GameDefinition` (see `mau-mau/mauMau.ts`).
+2. Add an AI via `createAgent(difficulty)` and a table component (see `MauMauTable.tsx`).
+3. Write the rules text (see `MauMauRules.tsx`) and register everything in `src/games/index.ts`, `tables.ts` and `rules.ts`.
+4. Add rule tests and a simulation test (thousands of AI games must never break a rule).
 
 ---
 
 ## 🔒 Privacy & Storage
 
-The initial version is planned to work entirely in the browser.
+Everything runs in the browser.
 
-- [ ] No mandatory user registration
-- [ ] Local game settings
-- [ ] Local statistics storage
-- [ ] Persistent game progress
-- [ ] Offline support
-- [ ] No backend required for single-player games
+- [x] No mandatory user registration
+- [x] Local game settings
+- [x] Local statistics storage – IndexedDB, can be deleted in the settings
+- [x] Persistent game progress – a running game survives reloads and closing the app (optional)
+- [x] Offline support
+- [x] No backend required for single-player games
+
+---
+
+## 💻 Development
+
+Requires Node.js 24 or newer.
+
+```bash
+npm install
+npm run dev          # start the dev server (includes a test game and a card gallery at #/dev/cards)
+npm test             # unit tests
+npm run test:e2e     # end-to-end tests (first run: npx playwright install chromium)
+npm run lint         # oxlint
+npm run typecheck    # TypeScript
+npm run format       # Prettier
+npm run build        # production build into dist/
+npm run generate:icons  # regenerate PWA icons from public/favicon.svg
+```
 
 ---
 
 ## 🚀 Deployment
 
-Cards is intended to be hosted as a static web application using **GitHub Pages**.
+Cards is hosted as a static web application on **GitHub Pages**.
 
-GitHub Actions will handle automated builds and deployments.
+GitHub Actions run lint, formatting, type checks, unit tests, the build and the end-to-end tests on every push and pull request (`.github/workflows/ci.yml`), and deploy `main` to GitHub Pages (`.github/workflows/deploy.yml`).
 
-The initial release will focus on single-player gameplay against computer opponents, without requiring server infrastructure.
+The focus is single-player gameplay against computer opponents, without any server infrastructure.
 
 ---
 
@@ -258,8 +267,15 @@ The main objectives are:
 
 ## 📌 Project Status
 
-Cards is currently under active development.
-
-More games, features and documentation will be added as the project evolves.
+| Phase | Status |
+|---|---|
+| 0 – Project setup, CI/CD, PWA | ✅ |
+| 1 – Engine (cards, RNG, game contract, session, simulation) | ✅ |
+| 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
+| 3 – First game: Mau-Mau with AI and rules | ✅ |
+| 4 – Statistics, match history and saved games | ✅ |
+| 5 – More games | next |
+| 6 – Advanced AI (web worker, more search) | planned |
+| 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 
 **Built for the love of cards and strategy.**

@@ -54,6 +54,20 @@ export interface GameDefinition<S, A, O extends object = Record<string, never>, 
 
   /** Short text for logs and move history. */
   describeAction?(action: A): string
+
+  /** Game-specific numbers shown in the statistics (keys returned by `summarize`). */
+  readonly statFields?: readonly { readonly key: string; readonly label: string }[]
+
+  /** Computes `statFields` for `player` from a finished game's move history. */
+  summarize?(game: {
+    readonly history: readonly {
+      readonly player: PlayerId
+      readonly action: A
+      readonly stateBefore: S
+    }[]
+    readonly finalState: S
+    readonly player: PlayerId
+  }): Readonly<Record<string, number>>
 }
 
 /** Type-erased game definition, e.g. for the registry. */
