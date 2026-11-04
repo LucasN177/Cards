@@ -1,5 +1,5 @@
 import type { AiAgent } from './agent'
-import type { Difficulty, GameResult, GameSetup, PlayerId } from './types'
+import type { Difficulty, GameOptionField, GameResult, GameSetup, PlayerId } from './types'
 
 /**
  * The contract every card game implements. The engine only ever talks to games through it,
@@ -19,6 +19,8 @@ export interface GameDefinition<S, A, O extends object = Record<string, never>, 
   readonly name: string
   readonly players: { readonly min: number; readonly max: number }
   readonly defaultOptions: O
+  /** Rule variants the player can change before a game (keys of `O`). */
+  readonly optionFields?: readonly GameOptionField[]
   /** Whether players may take back moves. Default: true. */
   readonly allowUndo?: boolean
 

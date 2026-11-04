@@ -1,4 +1,4 @@
-import { ArrowLeft, RotateCcw, Undo2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, RotateCcw, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface TableBarProps {
@@ -7,10 +7,11 @@ interface TableBarProps {
   readonly onExit: () => void
   readonly onUndo: () => void
   readonly onRestart: () => void
+  readonly onRules: () => void
 }
 
 /** Compact top bar with 44px touch targets; respects the notch/status bar. */
-export function TableBar({ title, canUndo, onExit, onUndo, onRestart }: TableBarProps) {
+export function TableBar({ title, canUndo, onExit, onUndo, onRestart, onRules }: TableBarProps) {
   const iconButton = 'size-11 text-white hover:bg-white/15 hover:text-white'
   return (
     <header className="flex items-center gap-1 bg-black/20 pt-safe px-safe">
@@ -24,6 +25,15 @@ export function TableBar({ title, canUndo, onExit, onUndo, onRestart }: TableBar
         <ArrowLeft className="size-5" />
       </Button>
       <h1 className="flex-1 truncate text-center text-base font-semibold text-white">{title}</h1>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={iconButton}
+        onClick={onRules}
+        aria-label="Spielregeln"
+      >
+        <BookOpen className="size-5" />
+      </Button>
       <Button
         variant="ghost"
         size="icon"

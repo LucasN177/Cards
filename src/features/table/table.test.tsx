@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import { useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 import { renderRoute } from '@/test/renderRoute'
@@ -12,7 +12,11 @@ function setUpQuickGame() {
   })
 }
 
-afterEach(() => useMatch.getState().clear())
+// Unmount first: a mounted table would immediately start a new game after clear().
+afterEach(() => {
+  cleanup()
+  useMatch.getState().clear()
+})
 
 describe('table', () => {
   it('plays a full game against the AI and offers a rematch', async () => {
@@ -25,8 +29,9 @@ describe('table', () => {
     await user.click(card!)
 
     const dialog = await screen.findByRole('dialog', {}, { timeout: 3000 })
-    expect(within(dialog).getByText('Lucas')).toBeInTheDocument()
-    expect(within(dialog).getByText('Anna')).toBeInTheDocument()
+    const ranking = within(dialog).getByRole('list', { name: 'Ergebnis' })
+    expect(within(ranking).getByText(/Lucas/)).toBeInTheDocument()
+    expect(within(ranking).getByText(/Anna/)).toBeInTheDocument()
 
     const firstMatch = useMatch.getState().match
     await user.click(within(dialog).getByRole('button', { name: 'Nochmal spielen' }))

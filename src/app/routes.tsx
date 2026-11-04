@@ -20,6 +20,10 @@ export const routes: RouteObject[] = [
       { index: true, element: <GameCatalogPage /> },
       { path: 'games/:gameId', element: <GameSetupPage /> },
       {
+        path: 'games/:gameId/rules',
+        lazy: async () => ({ Component: (await import('@/features/rules/RulesPage')).RulesPage }),
+      },
+      {
         path: 'settings',
         lazy: async () => ({
           Component: (await import('@/features/settings/SettingsPage')).SettingsPage,

@@ -3,7 +3,7 @@ import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
 import type { Card, CardId } from '@/engine'
 import { PlayingCard } from '@/features/cards/PlayingCard'
 import { cn } from '@/lib/utils'
-import { cardSpacing } from './handLayout'
+import { cardSpacing, handRows } from './handLayout'
 
 export interface HandProps {
   readonly cards: readonly Card[]
@@ -56,7 +56,10 @@ export function Hand({
 
   // Layout animations only once real sizes are known, so cards do not slide in from x = 0.
   const measured = cardWidth > 0
-  const spacing = cardSpacing(cards.length, containerWidth, cardWidth)
+  const rows =
+    handRows(cards.length, containerWidth, cardWidth) === 2
+      ? [cards.slice(0, Math.ceil(cards.length / 2)), cards.slice(Math.ceil(cards.length / 2))]
+      : [cards]
   const selected = enabled && cards.some((c) => c.id === selectedId) ? selectedId : null
 
   const play = (card: Card) => {
@@ -72,60 +75,74 @@ export function Hand({
         aria-hidden
         className="pointer-events-none invisible absolute w-(--card-w)"
       />
-      <div className="flex justify-center pt-[calc(var(--card-h)*0.22)]">
-        {cards.map((card, index) => {
-          const playable = enabled && isPlayable(card)
-          const isSelected = card.id === selected
-          return (
-            <motion.button
-              key={card.id}
-              type="button"
-              layout={measured}
-              layoutId={measured ? card.id : undefined}
-              aria-pressed={isSelected}
-              aria-disabled={!playable}
-              className={cn(
-                'relative shrink-0 rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300',
-                playable ? 'cursor-pointer' : 'cursor-default',
-                enabled && !playable && 'brightness-75',
-              )}
-              style={{ marginLeft: index === 0 ? 0 : spacing - cardWidth, zIndex: index }}
-              animate={{ y: isSelected ? '-22%' : 0 }}
-              whileHover={playable ? { y: isSelected ? '-22%' : '-8%' } : undefined}
-              drag={playable}
-              dragSnapToOrigin
-              dragMomentum={false}
-              whileDrag={{ scale: 1.08, zIndex: 100 }}
-              onPointerDown={(event) => {
-                pointerType.current = event.pointerType
-              }}
-              onDragStart={() => {
-                dragged.current = true
-                onDragActiveChange?.(true)
-              }}
-              onDragEnd={(_, info) => {
-                onDragActiveChange?.(false)
-                const rect = dropTarget?.current?.getBoundingClientRect()
-                const x = info.point.x - window.scrollX
-                const y = info.point.y - window.scrollY
-                if (rect && inside(rect, x, y)) play(card)
-              }}
-              onClick={(event) => {
-                if (dragged.current) {
-                  dragged.current = false
-                  return
-                }
-                if (!playable) return
-                const direct = event.detail === 0 || pointerType.current === 'mouse'
-                if (direct || isSelected) play(card)
-                else setSelectedId(card.id)
-              }}
-            >
-              <PlayingCard card={card} className={cn(isSelected && 'ring-4 ring-yellow-300')} />
-            </motion.button>
-          )
-        })}
-      </div>
+      {rows.map((row, rowIndex) => {
+        const spacing = cardSpacing(row.length, containerWidth, cardWidth)
+        return (
+          <div
+            key={rowIndex}
+            className="flex justify-center first:pt-[calc(var(--card-h)*0.22)]"
+            // The front row covers the lower part of the back row; corner indices stay visible.
+            style={rowIndex > 0 ? { marginTop: 'calc(var(--card-h) * -0.55)' } : undefined}
+          >
+            {row.map((card, index) => {
+              const playable = enabled && isPlayable(card)
+              const isSelected = card.id === selected
+              return (
+                <motion.button
+                  key={card.id}
+                  type="button"
+                  layout={measured}
+                  layoutId={measured ? card.id : undefined}
+                  aria-pressed={isSelected}
+                  aria-disabled={!playable}
+                  className={cn(
+                    'relative shrink-0 rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300',
+                    playable ? 'cursor-pointer' : 'cursor-default',
+                    enabled && !playable && 'brightness-75',
+                  )}
+                  style={{
+                    marginLeft: index === 0 ? 0 : spacing - cardWidth,
+                    // A lifted card comes to the front so the second tap always hits it.
+                    zIndex: isSelected ? 500 : rowIndex * 100 + index,
+                  }}
+                  animate={{ y: isSelected ? '-22%' : 0 }}
+                  whileHover={playable ? { y: isSelected ? '-22%' : '-8%' } : undefined}
+                  drag={playable}
+                  dragSnapToOrigin
+                  dragMomentum={false}
+                  whileDrag={{ scale: 1.08, zIndex: 100 }}
+                  onPointerDown={(event) => {
+                    pointerType.current = event.pointerType
+                  }}
+                  onDragStart={() => {
+                    dragged.current = true
+                    onDragActiveChange?.(true)
+                  }}
+                  onDragEnd={(_, info) => {
+                    onDragActiveChange?.(false)
+                    const rect = dropTarget?.current?.getBoundingClientRect()
+                    const x = info.point.x - window.scrollX
+                    const y = info.point.y - window.scrollY
+                    if (rect && inside(rect, x, y)) play(card)
+                  }}
+                  onClick={(event) => {
+                    if (dragged.current) {
+                      dragged.current = false
+                      return
+                    }
+                    if (!playable) return
+                    const direct = event.detail === 0 || pointerType.current === 'mouse'
+                    if (direct || isSelected) play(card)
+                    else setSelectedId(card.id)
+                  }}
+                >
+                  <PlayingCard card={card} className={cn(isSelected && 'ring-4 ring-yellow-300')} />
+                </motion.button>
+              )
+            })}
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import { MotionConfig } from 'framer-motion'
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/app/ErrorPage'
+import { RulesSheet } from '@/features/rules/RulesPage'
 import { gameRegistry } from '@/engine'
 import { GAME_TABLES } from '@/games/tables'
 import { useMatch } from '@/stores/matchStore'
@@ -44,7 +45,9 @@ export function TablePage() {
 
 function Table({ session, title }: { session: AnySession; title: string }) {
   useSessionVersion(session)
-  useAiTurns(session)
+  const [rulesOpen, setRulesOpen] = useState(false)
+  // Opponents wait while the rules are open.
+  useAiTurns(session, rulesOpen)
   useWakeLock()
   const navigate = useNavigate()
   const start = useMatch((s) => s.start)
@@ -64,6 +67,7 @@ function Table({ session, title }: { session: AnySession; title: string }) {
           onExit={exit}
           onUndo={() => session.undo()}
           onRestart={restart}
+          onRules={() => setRulesOpen(true)}
         />
         {Body ? (
           <Suspense fallback={<div className="flex-1" />}>
@@ -73,6 +77,14 @@ function Table({ session, title }: { session: AnySession; title: string }) {
           <p className="flex flex-1 items-center justify-center p-6 text-center text-white">
             Für dieses Spiel gibt es noch keinen Spieltisch.
           </p>
+        )}
+        {rulesOpen && (
+          <RulesSheet
+            gameId={session.game.id}
+            title={title}
+            options={session.options as Record<string, unknown>}
+            onClose={() => setRulesOpen(false)}
+          />
         )}
         {session.result && (
           <GameOverDialog

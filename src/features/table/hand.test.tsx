@@ -3,7 +3,7 @@ import { parseCards } from '@/engine'
 import { cardName } from '@/features/cards/cardFaces'
 import { useSettings } from '@/stores/settingsStore'
 import { Hand } from './Hand'
-import { cardSpacing } from './handLayout'
+import { cardSpacing, handRows } from './handLayout'
 
 const cards = parseCards('QH 10S AC')
 
@@ -83,5 +83,16 @@ describe('cardSpacing', () => {
 
   it('never hides more than the minimum visible part', () => {
     expect(cardSpacing(20, 200, 60)).toBeCloseTo(60 * 0.28)
+  })
+})
+
+describe('handRows', () => {
+  it('keeps one row while every card stays tappable', () => {
+    expect(handRows(8, 351, 64)).toBe(1)
+    expect(handRows(15, 800, 64)).toBe(1)
+  })
+
+  it('splits big hands on narrow screens into two rows', () => {
+    expect(handRows(12, 351, 64)).toBe(2)
   })
 })

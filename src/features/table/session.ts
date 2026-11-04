@@ -52,16 +52,16 @@ export function useSessionVersion(session: Pick<AnySession, 'subscribe' | 'versi
   )
 }
 
-/** Plays AI moves one at a time, paced by the game speed setting. */
-export function useAiTurns(session: AnySession) {
+/** Plays AI moves one at a time, paced by the game speed setting. `paused` holds them back. */
+export function useAiTurns(session: AnySession, paused = false) {
   const version = useSessionVersion(session)
   const delay = GAME_SPEED_DELAY[useSettings((s) => s.gameSpeed)]
 
   useEffect(() => {
-    if (!session.isAiTurn) return
+    if (paused || !session.isAiTurn) return
     const timer = setTimeout(() => {
       session.playAiTurn().catch((error: unknown) => console.error('AI move failed', error))
     }, delay)
     return () => clearTimeout(timer)
-  }, [session, version, delay])
+  }, [session, version, delay, paused])
 }

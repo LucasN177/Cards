@@ -1,16 +1,21 @@
 import type { Card } from '@/engine'
 import { PlayingCard } from '@/features/cards/PlayingCard'
+import { cn } from '@/lib/utils'
 
 interface CardPileProps {
   readonly label: string
   readonly count: number
   /** Shown face up on top (discard pile). Omit for a face-down stock. */
   readonly topCard?: Card
+  /** Makes the pile a button (e.g. tap the stock to draw). */
   readonly onClick?: () => void
+  readonly disabled?: boolean
+  /** Draws attention to the pile, e.g. when drawing is the only possible move. */
+  readonly highlight?: boolean
 }
 
 /** A stack of cards, e.g. the stock or a discard pile. */
-export function CardPile({ label, count, topCard, onClick }: CardPileProps) {
+export function CardPile({ label, count, topCard, onClick, disabled, highlight }: CardPileProps) {
   const layers = Math.min(3, Math.max(0, count - 1))
   const content = (
     <div className="relative">
@@ -37,8 +42,12 @@ export function CardPile({ label, count, topCard, onClick }: CardPileProps) {
         <button
           type="button"
           onClick={onClick}
+          disabled={disabled}
           aria-label={`${label} (${count})`}
-          className="rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+          className={cn(
+            'rounded-[7%] outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 disabled:cursor-default',
+            highlight && !disabled && 'animate-pulse ring-4 ring-yellow-300',
+          )}
         >
           {content}
         </button>

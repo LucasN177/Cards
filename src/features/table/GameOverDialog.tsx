@@ -22,9 +22,9 @@ export function GameOverDialog({
   useEffect(() => restartRef.current?.focus(), [])
 
   const won = result.winners.includes(humanId)
-  const ranking = [...players].sort(
-    (a, b) => (result.scores[b.id] ?? 0) - (result.scores[a.id] ?? 0),
-  )
+  const ranking = result.ranking
+    ? result.ranking.flatMap((id) => players.filter((p) => p.id === id))
+    : [...players].sort((a, b) => (result.scores[b.id] ?? 0) - (result.scores[a.id] ?? 0))
   const winnerNames = players.filter((p) => result.winners.includes(p.id)).map((p) => p.name)
 
   return (
@@ -44,11 +44,15 @@ export function GameOverDialog({
             <p className="text-muted-foreground">{winnerNames.join(' & ')} gewinnt.</p>
           )}
         </div>
-        <ol className="divide-y rounded-lg border">
-          {ranking.map((player) => (
+        <ol className="divide-y rounded-lg border" aria-label="Ergebnis">
+          <li className="flex justify-between px-3 py-1.5 text-xs text-muted-foreground">
+            <span>Platz</span>
+            <span>{result.scoreLabel ?? 'Punkte'}</span>
+          </li>
+          {ranking.map((player, index) => (
             <li key={player.id} className="flex justify-between px-3 py-2 text-sm">
               <span className={player.id === humanId ? 'font-semibold' : undefined}>
-                {player.name}
+                {index + 1}. {player.name}
               </span>
               <span className="tabular-nums">{result.scores[player.id] ?? 0}</span>
             </li>

@@ -94,7 +94,7 @@ interface AiAgent<State, Action> {
   Undo, Speichern/Laden per deterministischem Replay, Simulation (KI gegen KI), `RandomAgent`
 - Hohe Testabdeckung (Vitest), inkl. Simulationstests mit einem Test-Spiel
 
-### Phase 2 – UI-Fundament
+### Phase 2 – UI-Fundament ✅
 
 - **M4 – App-Shell ✅:** Routing (Spielauswahl → Konfiguration → Tisch), Settings-Store mit
   Persistenz, Light/Dark-Theme, erste shadcn/ui-Komponenten
@@ -103,9 +103,15 @@ interface AiAgent<State, Action> {
 
 ### Phase 3 – Erstes Spiel end-to-end: **Mau-Mau**
 
-- **M6 – Mau-Mau spielbar:** Regeln mit Varianten (7 ziehen, 8 aussetzen, Bube wünschen …),
-  KI Random (Anfänger) + Heuristik (Fortgeschritten), Playwright-E2E: komplette Partie gegen KI
-- Bewusst einfach: validiert Engine, UI, KI-Interface und Statistik in einem Durchstich
+- **M6 – Mau-Mau spielbar ✅:** Regeln mit Varianten (7 ziehen, 7 auf 7, 8 aussetzen,
+  9 Richtungswechsel, Bube wünschen, Bube auf Bube, 5–7 Karten), Strafpunkte, Patt-Regel;
+  Regelwerk zum Nachlesen (eigene Seite und im Spiel); Regeloptionen im Setup (generisch über
+  `optionFields`); Playwright-E2E: komplette Partie gegen KI auf Desktop und Handy
+- KI-Stufen: Anfänger (zufällige passende Karte), Fortgeschritten (Heuristik), Experte
+  (Determinization + Monte-Carlo-Rollouts mit Gegnermodell aus öffentlichen Zügen)
+- Gemessene Gewinnquoten zu zweit (je 400–1000 Partien): Anfänger 36 % und Experte ~59 % gegen
+  Fortgeschritten
+- Offen für Phase 4: Statistiken; Phase 6: KI-Berechnung in einen Web Worker verlagern
 
 ### Phase 4 – Statistiken & Persistenz
 

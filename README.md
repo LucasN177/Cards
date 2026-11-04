@@ -24,7 +24,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [ ] Solitaire / Klondike
 - [ ] Spider Solitaire
 - [ ] FreeCell
-- [ ] Mau-Mau
+- [x] Mau-Mau
 - [ ] Crazy Eights
 - [ ] Hearts
 - [ ] Spades

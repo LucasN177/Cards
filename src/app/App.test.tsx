@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderRoute } from '@/test/renderRoute'
 import { useMatch } from '@/stores/matchStore'
@@ -24,7 +24,11 @@ describe('game catalog', () => {
 })
 
 describe('game setup', () => {
-  afterEach(() => useMatch.getState().clear())
+  // Unmount first: a mounted table would immediately start a new game after clear().
+  afterEach(() => {
+    cleanup()
+    useMatch.getState().clear()
+  })
 
   it('saves the chosen setup and opens the table', async () => {
     const { router, user } = renderRoute('/games/high-card')
@@ -35,7 +39,7 @@ describe('game setup', () => {
     await user.click(screen.getByRole('button', { name: /Spiel starten/ }))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/play/high-card'))
-    expect(useSettings.getState().games['high-card']).toEqual({
+    expect(useSettings.getState().games['high-card']).toMatchObject({
       opponents: 3,
       difficulty: 'expert',
     })
