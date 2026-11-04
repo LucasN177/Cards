@@ -142,6 +142,9 @@ interface AiAgent<State, Action> {
      Tipp-Markierung, Statuszeile, Layout für Hoch- und Querformat); ein Regressionstest stellt
      sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
+   - **M11 – Crazy Eights ✅:** nutzt die Mau-Mau-Regeln mit eigenem Regelsatz (52 Karten, 8 wild,
+     Ziehen bis es passt, 2/Dame/Ass als Varianten, eigene Punktwertung); Mau-Mau-Regeln dafür
+     über interne Felder (Blatt, Sonderränge, Wertung) parametrisiert
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
    - **M10 – Hearts ✅:** vier Spieler, Weitergeben (links, rechts, gegenüber, keine), Kreuz 2
      beginnt, keine Punkte im ersten Stich, Herz brechen, Shoot the Moon (26 für die anderen

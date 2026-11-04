@@ -32,6 +32,20 @@ export interface MauMauOptions {
   readonly nineReverses: boolean
   /** A jack may be played on a jack ("Bube auf Bube"). */
   readonly jackOnJack: boolean
+  /**
+   * The rule set behind the options above. Mau-Mau and Crazy Eights share these rules and only
+   * differ here (the option names keep their Mau-Mau meaning: "sevenDrawsTwo" switches the
+   * draw-two card on, whatever its rank is).
+   */
+  readonly deck: 'piquet32' | 'standard52'
+  /** Wild card: playable on anything, lets the player wish a suit. */
+  readonly wildRank: Rank
+  readonly drawTwoRank: Rank
+  readonly skipRank: Rank
+  readonly reverseRank: Rank
+  /** Draw until a card fits (Crazy Eights) instead of drawing a single card. */
+  readonly drawUntilPlayable: boolean
+  readonly scoring: 'mauMau' | 'crazyEights'
 }
 
 export const DEFAULT_MAU_MAU_OPTIONS: MauMauOptions = {
@@ -41,6 +55,13 @@ export const DEFAULT_MAU_MAU_OPTIONS: MauMauOptions = {
   eightSkips: true,
   nineReverses: false,
   jackOnJack: false,
+  deck: 'piquet32',
+  wildRank: 'J',
+  drawTwoRank: '7',
+  skipRank: '8',
+  reverseRank: '9',
+  drawUntilPlayable: false,
+  scoring: 'mauMau',
 }
 
 export type MauMauAction =
@@ -125,11 +146,30 @@ export const CARD_POINTS: Readonly<Partial<Record<Rank, number>>> = {
   A: 11,
 }
 
-export const cardPoints = (card: Card) =>
-  card.kind === 'suited' ? (CARD_POINTS[card.rank] ?? 0) : 0
+/** Crazy Eights: eights 50, pictures 10, aces 1, other cards their face value. */
+export const CRAZY_EIGHTS_POINTS: Readonly<Partial<Record<Rank, number>>> = {
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 50,
+  '9': 9,
+  '10': 10,
+  J: 10,
+  Q: 10,
+  K: 10,
+  A: 1,
+}
 
-export const handPoints = (cards: readonly Card[]) =>
-  cards.reduce((sum, card) => sum + cardPoints(card), 0)
+export const cardPoints = (card: Card, scoring: MauMauOptions['scoring'] = 'mauMau') =>
+  card.kind === 'suited'
+    ? ((scoring === 'crazyEights' ? CRAZY_EIGHTS_POINTS : CARD_POINTS)[card.rank] ?? 0)
+    : 0
+
+export const handPoints = (cards: readonly Card[], scoring: MauMauOptions['scoring'] = 'mauMau') =>
+  cards.reduce((sum, card) => sum + cardPoints(card, scoring), 0)
 
 const isRank = (card: Card, rank: Rank): card is SuitedCard =>
   card.kind === 'suited' && card.rank === rank
@@ -141,10 +181,11 @@ export function matches(
   card: Card,
   top: Card,
   wish: Suit | null,
-  options: Pick<MauMauOptions, 'jackOnJack'>,
+  options: Pick<MauMauOptions, 'jackOnJack' | 'wildRank'>,
 ): boolean {
   if (card.kind !== 'suited' || top.kind !== 'suited') return false
-  if (card.rank === 'J') return top.rank !== 'J' || options.jackOnJack
+  const wild = options.wildRank
+  if (card.rank === wild) return top.rank !== wild || options.jackOnJack
   if (wish) return card.suit === wish
   return card.suit === top.suit || card.rank === top.rank
 }
@@ -154,7 +195,9 @@ export function playableCards(state: MauMauState, player: PlayerId): Card[] {
   const hand = state.hands[player] ?? []
   const top = topCard(state)
   if (state.pendingDraw > 0) {
-    return state.options.stackSevens ? hand.filter((card) => isRank(card, '7')) : []
+    return state.options.stackSevens
+      ? hand.filter((card) => isRank(card, state.options.drawTwoRank))
+      : []
   }
   const candidates = state.drawnCardId ? hand.filter((c) => c.id === state.drawnCardId) : hand
   return candidates.filter((card) => matches(card, top, state.wish, state.options))
@@ -200,7 +243,9 @@ function applyMove(state: MauMauState, player: PlayerId, action: MauMauAction): 
       ...state,
       hands: { ...state.hands, [player]: rest },
       discard: [...state.discard, card],
-      wish: isRank(card, 'J') ? (action.wish ?? (card as SuitedCard).suit) : null,
+      wish: isRank(card, state.options.wildRank)
+        ? (action.wish ?? (card as SuitedCard).suit)
+        : null,
       drawnCardId: null,
       idleTurns: 0,
     }
@@ -210,12 +255,14 @@ function applyMove(state: MauMauState, player: PlayerId, action: MauMauAction): 
     let direction = state.direction
     let steps = 1
     let pendingDraw = 0
-    if (isRank(card, '7') && options.sevenDrawsTwo) pendingDraw = state.pendingDraw + 2
-    if (isRank(card, '8') && options.eightSkips) {
+    if (isRank(card, options.drawTwoRank) && options.sevenDrawsTwo) {
+      pendingDraw = state.pendingDraw + 2
+    }
+    if (isRank(card, options.skipRank) && options.eightSkips) {
       steps = 2
       events.push({ type: 'skipped', player: advance(state, player) })
     }
-    if (isRank(card, '9') && options.nineReverses && state.order.length > 2) {
+    if (isRank(card, options.reverseRank) && options.nineReverses && state.order.length > 2) {
       direction = direction === 1 ? -1 : 1
       events.push({ type: 'reversed' })
     }
@@ -239,7 +286,18 @@ function applyMove(state: MauMauState, player: PlayerId, action: MauMauAction): 
 
   // draw
   const penalty = state.pendingDraw > 0
-  const { drawn, stock, discard, rng, events } = drawCards(state, penalty ? state.pendingDraw : 1)
+  let { drawn, stock, discard, rng, events } = drawCards(state, penalty ? state.pendingDraw : 1)
+  // Crazy Eights: keep drawing until a card fits (or nothing is left to draw).
+  if (!penalty && state.options.drawUntilPlayable) {
+    const top = topCard(state)
+    while (drawn.length > 0 && !matches(drawn.at(-1)!, top, state.wish, state.options)) {
+      const more = drawCards({ ...state, stock, discard, rng }, 1)
+      if (more.drawn.length === 0) break
+      drawn = [...drawn, ...more.drawn]
+      ;({ stock, discard, rng } = more)
+      events = [...events, ...more.events]
+    }
+  }
   const next: MauMauState = {
     ...state,
     hands: { ...state.hands, [player]: [...hand, ...drawn] },
@@ -259,7 +317,7 @@ function applyMove(state: MauMauState, player: PlayerId, action: MauMauAction): 
       },
     ],
   }
-  const drawnCard = drawn[0]
+  const drawnCard = drawn.at(-1)
   const canPlayDrawn =
     !penalty && drawnCard && matches(drawnCard, topCard(next), next.wish, next.options)
   if (canPlayDrawn) return { ...next, drawnCardId: drawnCard.id }
@@ -317,9 +375,11 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
   setup({ players, options, seed }) {
     const order = players.map((p) => p.id)
     const rng = Rng.fromSeed(seed)
-    const deck = rng.shuffle(createDeck('piquet32'))
+    const deck = rng.shuffle(createDeck(options.deck))
     // With many players a big hand would not leave enough cards to play with.
-    const handSize = Math.min(options.handSize, Math.floor((deck.length - 6) / order.length))
+    // handSize 0 = the usual default: seven cards for two players, otherwise five.
+    const wanted = options.handSize || (order.length === 2 ? 7 : 5)
+    const handSize = Math.min(wanted, Math.floor((deck.length - 6) / order.length))
     const { hands, rest } = deal(deck, order.length, handSize)
     return {
       order,
@@ -345,7 +405,7 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
   legalActions(state, player) {
     if (player !== state.turn || state.winner) return []
     const plays: MauMauAction[] = playableCards(state, player).flatMap((card) =>
-      isRank(card, 'J')
+      isRank(card, state.options.wildRank)
         ? SUITS.map((wish) => ({ type: 'play' as const, cardId: card.id, wish }))
         : [{ type: 'play' as const, cardId: card.id }],
     )
@@ -383,7 +443,9 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
   isTerminal: (state) => state.winner !== null || state.idleTurns >= state.order.length,
 
   result(state): GameResult {
-    const scores = Object.fromEntries(state.order.map((id) => [id, handPoints(state.hands[id]!)]))
+    const scores = Object.fromEntries(
+      state.order.map((id) => [id, handPoints(state.hands[id]!, state.options.scoring)]),
+    )
     const ranking = [...state.order].sort((a, b) => {
       if (a === state.winner) return -1
       if (b === state.winner) return 1
@@ -417,7 +479,7 @@ export const mauMauRules = defineGame<MauMauState, MauMauAction, MauMauOptions, 
       if (action.type === 'play') {
         cardsPlayed++
         const card = entry.stateBefore.hands[player]?.find((c) => c.id === action.cardId)
-        if (card && isRank(card, 'J')) jacksPlayed++
+        if (card && isRank(card, finalState.options.wildRank)) jacksPlayed++
       } else if (action.type === 'draw') {
         const after = (history[i + 1]?.stateBefore ?? finalState).hands[player]?.length ?? 0
         const drawn = Math.max(0, after - (entry.stateBefore.hands[player]?.length ?? 0))

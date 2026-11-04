@@ -230,6 +230,7 @@ describe('simulation', () => {
     for (let seed = 0; seed < 300; seed++) {
       const count = 2 + (seed % 5)
       const options: MauMauOptions = {
+        ...DEFAULT_MAU_MAU_OPTIONS,
         handSize: 5 + (seed % 3),
         sevenDrawsTwo: seed % 2 === 0,
         stackSevens: seed % 3 !== 0,

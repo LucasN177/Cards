@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Hearts**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -27,7 +27,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [x] Spider Solitaire – one, two or four suits, finished runs are put away automatically
 - [x] FreeCell – run moves limited by free cells and empty piles, safe cards go to the foundations by themselves (optional)
 - [x] Mau-Mau – single games or matches over 3/5/10 rounds, with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
-- [ ] Crazy Eights
+- [x] Crazy Eights – 52 cards, wild eights, draw until a card fits, optional twos/queens/aces (shares its rules engine with Mau-Mau)
 - [x] Hearts – passing (left, right, across, none), shoot the moon, optional jack of diamonds, play to 50/100 points or a single hand
 - [ ] Spades
 - [ ] Bridge
@@ -189,7 +189,8 @@ src
 │   └── scoring/   Series of rounds: totals, standings, winners
 ├── ai/            Shared AI building blocks (random agent) and the AI web worker
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
-│   ├── mau-mau/
+│   ├── mau-mau/   (also the rules engine of crazy-eights/)
+│   ├── crazy-eights/
 │   ├── hearts/
 │   ├── klondike/  (shown as "Solitär")
 │   ├── freecell/
@@ -282,7 +283,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts ✓; next: Blackjack, Crazy Eights, Schwimmen, Durak, President |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights ✓; next: Blackjack, Schwimmen, President, Durak |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

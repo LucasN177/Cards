@@ -1,13 +1,14 @@
 import { gameRegistry } from '@/engine'
 import { highCardGame } from '@/engine/testing/highCardGame'
 import { TEST_GAMES_ENABLED } from './flags'
+import { crazyEightsGame } from './crazy-eights'
 import { freeCellGame } from './freecell/freecell'
 import { heartsGame } from './hearts'
 import { klondikeGame } from './klondike/klondike'
 import { mauMauGame } from './mau-mau'
 import { spiderGame } from './spider/spider'
 
-const GAMES = [mauMauGame, klondikeGame, freeCellGame, spiderGame, heartsGame]
+const GAMES = [mauMauGame, crazyEightsGame, klondikeGame, freeCellGame, spiderGame, heartsGame]
 
 /** Registers all playable games. Imported once at app start. */
 export function registerGames(registry = gameRegistry) {

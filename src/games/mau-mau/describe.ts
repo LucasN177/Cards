@@ -53,7 +53,7 @@ export function describeTurn(view: MauMauView, myTurn: boolean, nameOf: (id: Pla
   if (!myTurn) return `${nameOf(view.turn)} ist am Zug …`
   if (view.pendingDraw > 0) {
     return view.options.stackSevens
-      ? `Lege eine 7 oder ziehe ${view.pendingDraw} Karten`
+      ? `Lege eine ${view.options.drawTwoRank} oder ziehe ${view.pendingDraw} Karten`
       : `Du musst ${view.pendingDraw} Karten ziehen`
   }
   if (view.drawnCardId) return 'Spiele die gezogene Karte oder tippe auf „Weiter“'

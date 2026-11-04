@@ -39,7 +39,7 @@ export default function MauMauTable({ session: anySession, humanId }: GameBodyPr
   const playedByOpponent = lastPlay?.type === 'played' && lastPlay.player !== humanId
 
   const playCard = (card: Card) => {
-    if (card.kind === 'suited' && card.rank === 'J') setPendingJack(card)
+    if (card.kind === 'suited' && card.rank === view.options.wildRank) setPendingJack(card)
     else session.dispatch(humanId, { type: 'play', cardId: card.id })
   }
   const wish = (suit: Suit) => {

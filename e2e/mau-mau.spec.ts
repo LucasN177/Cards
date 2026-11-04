@@ -19,7 +19,7 @@ async function useFastSettings(page: Page, opponents = 1) {
 
 test('Mau-Mau is playable from the catalog', async ({ page }) => {
   await page.goto('/')
-  const tile = page.getByRole('link', { name: /Mau-Mau/ })
+  const tile = page.getByRole('link', { name: /^Mau-Mau/ })
   await expect(tile).toBeVisible()
   await expect(tile).not.toContainText('Bald')
 })

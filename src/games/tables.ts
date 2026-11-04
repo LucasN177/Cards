@@ -6,6 +6,7 @@ type TableComponent = LazyExoticComponent<ComponentType<GameBodyProps>>
 /** Game-specific table UIs, loaded on demand so each game is its own chunk. */
 export const GAME_TABLES: Readonly<Record<string, TableComponent>> = {
   'mau-mau': lazy(() => import('./mau-mau/MauMauTable')),
+  'crazy-eights': lazy(() => import('./mau-mau/MauMauTable')),
   klondike: lazy(() => import('./klondike/KlondikeTable')),
   freecell: lazy(() => import('./freecell/FreeCellTable')),
   spider: lazy(() => import('./spider/SpiderTable')),

@@ -13,7 +13,7 @@ test('the app bar can be moved to the bottom on phones', async ({ page, isMobile
     // At the bottom edge, also after a reload (the setting is stored on the device).
     expect(Math.round((await box()).y + (await box()).height)).toBe(viewport.height)
     await page.getByRole('link', { name: 'Spiele' }).click()
-    await page.getByRole('link', { name: /Mau-Mau/ }).click()
+    await page.getByRole('link', { name: /^Mau-Mau/ }).click()
     await page.getByRole('button', { name: /Spiel starten/ }).click()
     const tableBar = page.locator('header.app-bar')
     await expect(tableBar).toContainText('Mau-Mau')
