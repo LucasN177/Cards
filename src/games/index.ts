@@ -7,6 +7,7 @@ import { freeCellGame } from './freecell/freecell'
 import { heartsGame } from './hearts'
 import { klondikeGame } from './klondike/klondike'
 import { mauMauGame } from './mau-mau'
+import { presidentGame } from './president'
 import { schwimmenGame } from './schwimmen'
 import { spiderGame } from './spider/spider'
 
@@ -19,6 +20,7 @@ const GAMES = [
   heartsGame,
   blackjackGame,
   schwimmenGame,
+  presidentGame,
 ]
 
 /** Registers all playable games. Imported once at app start. */

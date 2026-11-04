@@ -5,6 +5,12 @@ import { PlayingCard } from '@/features/cards/PlayingCard'
 import { cn } from '@/lib/utils'
 import { cardSpacing, handRows } from './handLayout'
 
+/**
+ * Space above the hand so a lifted (selected) card does not cover buttons right above it. Not on
+ * short screens (phones in landscape) – they have no height to spare.
+ */
+export const LIFT_CLEARANCE = '[@media(min-height:600px)]:mb-[calc(var(--card-h)*0.22)]'
+
 export interface HandProps {
   readonly cards: readonly Card[]
   /** Whether the player may act right now. */

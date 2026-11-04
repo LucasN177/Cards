@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import type { CardId, GameSession, PlayerId } from '@/engine'
 import { cardName } from '@/features/cards/cardFaces'
 import { PlayingCard } from '@/features/cards/PlayingCard'
-import { Hand } from '@/features/table/Hand'
+import { Hand, LIFT_CLEARANCE } from '@/features/table/Hand'
 import { OpponentSeat } from '@/features/table/OpponentSeat'
 import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { TableLayout } from '@/features/table/TableLayout'
@@ -227,7 +227,7 @@ export default function SchwimmenTable({
               </p>
             )}
             {myTurn && (
-              <div className="flex flex-wrap justify-center gap-2">
+              <div className={cn('flex flex-wrap justify-center gap-2', LIFT_CLEARANCE)}>
                 <Button
                   variant="secondary"
                   className="h-11"

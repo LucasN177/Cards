@@ -142,6 +142,9 @@ interface AiAgent<State, Action> {
      Tipp-Markierung, Statuszeile, Layout für Hoch- und Querformat); ein Regressionstest stellt
      sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
 2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
+   - **M14 – President ✅:** 3–7 Spieler, 52 Karten (3 niedrig, 2 hoch), eine bis vier gleiche
+     Karten, Passen setzt bis Stichende aus, Titel Präsident/Vize/Bürger/Vize-Bettler/Bettler,
+     Punkte nach Platz, Kartentausch ab Runde 2 (abschaltbar), 3/5/10 Runden; KI in drei Stufen
    - **M13 – Schwimmen (31) ✅:** 2–9 Spieler, 32 Karten, Tauschen (eine/alle), Schieben (neue
      Mitte, wenn alle schieben), Klopfen (jeder noch ein Zug), 31 = Feuer (verliert der
      Niedrigste oder alle anderen), 2–4 Leben plus Schwimmen, Ende sobald alle Menschen raus

@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button'
 import type { CardId, GameSession, PlayerId } from '@/engine'
 import { cardName } from '@/features/cards/cardFaces'
 import { PlayingCard } from '@/features/cards/PlayingCard'
-import { Hand } from '@/features/table/Hand'
+import { Hand, LIFT_CLEARANCE } from '@/features/table/Hand'
 import { OpponentSeat } from '@/features/table/OpponentSeat'
 import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { DropZone, TableLayout } from '@/features/table/TableLayout'
+import { cn } from '@/lib/utils'
 import { useSettings } from '@/stores/settingsStore'
 import {
   type HeartsAction,
@@ -182,7 +183,7 @@ export default function HeartsTable({
           ))}
         center={
           <DropZone ref={centerRef} active={dragging} label="Stich">
-            <div className="relative h-[calc(var(--card-h)*2.25)] w-[calc(var(--card-w)*3.2)]">
+            <div className="pointer-events-none relative h-[calc(var(--card-h)*2.25)] w-[calc(var(--card-w)*3.2)]">
               <AnimatePresence>
                 {shownTrick.map(({ player, card }) => {
                   const seat = seatOf(player)
@@ -233,7 +234,7 @@ export default function HeartsTable({
               <Button
                 size="lg"
                 variant="secondary"
-                className="h-11 min-w-40"
+                className={cn('h-11 min-w-40', LIFT_CLEARANCE)}
                 disabled={chosen.size !== 3}
                 onClick={pass}
               >
