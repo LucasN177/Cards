@@ -1,0 +1,27 @@
+export type PlayerId = string
+
+export type PlayerKind = 'human' | 'ai'
+
+export const DIFFICULTIES = ['beginner', 'intermediate', 'expert'] as const
+export type Difficulty = (typeof DIFFICULTIES)[number]
+
+export interface PlayerInfo {
+  readonly id: PlayerId
+  readonly name: string
+  readonly kind: PlayerKind
+  /** Only relevant for AI players. */
+  readonly difficulty?: Difficulty
+}
+
+export interface GameSetup<O> {
+  /** Players in seating order. */
+  readonly players: readonly PlayerInfo[]
+  readonly options: O
+  readonly seed: number
+}
+
+export interface GameResult {
+  readonly scores: Readonly<Record<PlayerId, number>>
+  /** More than one entry for ties or team wins; empty if nobody wins. */
+  readonly winners: readonly PlayerId[]
+}

@@ -48,7 +48,7 @@ src/
 e2e/                Playwright-Tests
 ```
 
-## 4. Kern-Schnittstellen (Entwurf)
+## 4. Kern-Schnittstellen (Entwurf – maßgeblich ist `src/engine/core/game.ts`)
 
 ```ts
 interface GameDefinition<State, Action, Options> {
@@ -74,7 +74,7 @@ interface AiAgent<State, Action> {
 
 ## 5. Phasen
 
-### Phase 0 – Projekt-Setup ✅ (dieser Schritt)
+### Phase 0 – Projekt-Setup ✅
 
 - Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui-Konfiguration, Pfad-Alias `@/`
 - Zustand, Framer Motion installiert
@@ -84,26 +84,28 @@ interface AiAgent<State, Action> {
 - PWA: installierbar, Offline-Cache per Service Worker (vite-plugin-pwa), Update-Hinweis statt Auto-Reload, App-Icons
 - Leere Ordnerstruktur gemäß Abschnitt 3
 
-### Phase 1 – Engine-Fundament
+### Phase 1 – Engine-Fundament ✅
 
-- Kartenmodell, Deck-Factories, seedbarer RNG, Mischen
-- `GameDefinition`, Game Registry, Game Runner (Turn-Loop, Mensch/KI-Zug, Aktionshistorie)
-- `PlayerView`-Maskierung, Undo/Redo auf Aktionshistorie
-- Hohe Testabdeckung (Vitest)
+- **M1 – Karten & Zufall:** Kartenmodell (französisches Blatt intern, deutsches Blatt ist nur ein
+  Darstellungsstil), Joker, Deck-Presets (52, 36, 32, 24, Doppelkopf 48, Rommé/Canasta),
+  seedbarer RNG mit serialisierbarem Zustand, Mischen, Geben
+- **M2 – Spielmodell:** `GameDefinition`-Vertrag, `PlayerView`, Game Registry, Sitzreihenfolge
+- **M3 – Game Session:** Zugsteuerung und -validierung, KI-Züge über `AiAgent`, Aktionshistorie,
+  Undo, Speichern/Laden per deterministischem Replay, Simulation (KI gegen KI), `RandomAgent`
+- Hohe Testabdeckung (Vitest), inkl. Simulationstests mit einem Test-Spiel
 
 ### Phase 2 – UI-Fundament
 
-- App-Shell, Routing (Spielauswahl → Konfiguration → Tisch)
-- Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout
-- Animationen mit Framer Motion, Drag & Drop, Spielgeschwindigkeit
-- Light/Dark-Theme, Settings-Store mit Persistenz
+- **M4 – App-Shell:** Routing (Spielauswahl → Konfiguration → Tisch), Settings-Store mit
+  Persistenz, Light/Dark-Theme, erste shadcn/ui-Komponenten
+- **M5 – Tisch & Karten:** Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout,
+  Anbindung `GameSession` ↔ React, Animationen mit Framer Motion, Drag & Drop, Spielgeschwindigkeit
 
 ### Phase 3 – Erstes Spiel end-to-end: **Mau-Mau**
 
+- **M6 – Mau-Mau spielbar:** Regeln mit Varianten (7 ziehen, 8 aussetzen, Bube wünschen …),
+  KI Random (Anfänger) + Heuristik (Fortgeschritten), Playwright-E2E: komplette Partie gegen KI
 - Bewusst einfach: validiert Engine, UI, KI-Interface und Statistik in einem Durchstich
-- KI: Random (Anfänger) + Heuristik (Fortgeschritten)
-- Regelvarianten (7 ziehen, 8 aussetzen, Bube wünschen …)
-- Playwright-E2E: komplette Partie gegen KI
 
 ### Phase 4 – Statistiken & Persistenz
 
