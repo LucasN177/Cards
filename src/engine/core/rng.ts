@@ -47,6 +47,11 @@ export class Rng {
     return [this.a, this.b, this.c, this.d]
   }
 
+  /** Continues from another generator's state, e.g. after an AI decided in a web worker. */
+  set state(state: RngState) {
+    ;[this.a, this.b, this.c, this.d] = state
+  }
+
   nextUint32(): number {
     const t0 = (this.a + this.b) | 0
     this.a = this.b ^ (this.b >>> 9)

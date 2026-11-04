@@ -15,6 +15,8 @@ export default defineConfig({
       process.env.VITE_ENABLE_TEST_GAMES ?? '',
     ),
   },
+  // The AI worker imports shared modules; ES module workers allow code splitting.
+  worker: { format: 'es' },
   plugins: [
     react(),
     tailwindcss(),

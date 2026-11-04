@@ -152,12 +152,15 @@ interface AiAgent<State, Action> {
 - **Solitär-Tipp:** markiert den sinnvollsten nächsten Zug; teilt sich die Logik mit der
   Sackgassen-Erkennung
 
-### Phase 6 – Fortgeschrittene KI
+### Phase 6 – Fortgeschrittene KI (in Arbeit)
 
 - Generisches Determinization / Information-Set-MCTS für Stichspiele
 - Hand-Evaluation, Wahrscheinlichkeiten, Gegnermodellierung
 - KI-Persönlichkeiten, adaptive Schwierigkeit, Erklärungen
-- KI-Berechnung in Web Worker auslagern (UI bleibt flüssig)
+- ✅ KI-Berechnung im Web Worker (`src/ai/worker`): alle Spiele-KIs laufen automatisch dort;
+  der Worker setzt die Zufallsfolge der Session fort (Partien bleiben reproduzierbar), Agenten
+  bleiben zwischen Zügen erhalten (für KIs mit Gedächtnis), Rückfall auf den Haupt-Thread bei
+  fehlendem oder abgestürztem Worker
 
 ### Phase 7 – Komfort & Feinschliff
 

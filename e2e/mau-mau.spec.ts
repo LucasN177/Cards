@@ -93,3 +93,37 @@ test('a match over several rounds shows the round in the header', async ({ page 
   await page.getByRole('button', { name: /Spiel starten/ }).click()
   await expect(page.getByRole('heading', { name: 'Mau-Mau · Runde 1/3' })).toBeVisible()
 })
+
+test('expert opponents think in a web worker', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'cards:settings',
+      JSON.stringify({
+        state: { gameSpeed: 'fast', games: { 'mau-mau': { opponents: 3, difficulty: 'expert' } } },
+        version: 1,
+      }),
+    )
+  })
+  await page.reload()
+  await page.goto('/#/games/mau-mau')
+  const worker = page.waitForEvent('worker')
+  await page.getByRole('button', { name: /Spiel starten/ }).click()
+  expect((await worker).url()).toContain('aiWorker')
+
+  // At least one opponent move happens (via the worker) without errors on the page.
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  const status = page.locator('[aria-live="polite"]')
+  await expect(status).toContainText(/Du bist dran|ist am Zug/, { timeout: 15_000 })
+  // The starting player is random; if it is us, draw a card to hand the turn on.
+  if ((await status.textContent())?.includes('Du bist dran')) {
+    await page.getByRole('button', { name: /Ziehen|Karten ziehen/ }).click()
+    const pass = page.getByRole('button', { name: 'Weiter' })
+    if (await pass.isVisible()) await pass.click()
+  }
+  await expect(status).toContainText(/(Anna|Ben|Clara) (spielt|zieht|passt|kann)/, {
+    timeout: 15_000,
+  })
+  expect(errors).toEqual([])
+})

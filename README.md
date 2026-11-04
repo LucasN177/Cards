@@ -73,7 +73,7 @@ Play against computer-controlled opponents with different strategies and difficu
 - [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-Every game brings its own AI through a common `AiAgent` interface. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level.
+Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level.
 
 ---
 
@@ -186,7 +186,7 @@ src
 │   │              save/restore by replay), seedable RNG, registry, simulation
 │   ├── players/   Seating order
 │   └── scoring/   Series of rounds: totals, standings, winners
-├── ai/            Shared AI building blocks (random agent)
+├── ai/            Shared AI building blocks (random agent) and the AI web worker
 ├── games/         One folder per game: rules, AI, table UI, rules text, tests
 │   ├── mau-mau/
 │   └── klondike/
@@ -278,7 +278,7 @@ The main objectives are:
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
 | 5 – More games | in progress – Solitaire ✓, next: FreeCell, Spider |
-| 6 – Advanced AI (web worker, more search) | planned |
+| 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 
 **Built for the love of cards and strategy.**

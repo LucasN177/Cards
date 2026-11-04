@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { createRandomAgent } from '@/ai'
+import { createWorkerAgent } from '@/ai/worker/workerAgent'
 import {
   type AiAgent,
   type AnyGameDefinition,
@@ -21,13 +22,17 @@ export interface GameBodyProps {
 export const HUMAN_ID = 'you'
 const OPPONENT_NAMES = ['Anna', 'Ben', 'Clara', 'David', 'Emma', 'Felix', 'Greta', 'Hugo']
 
-/** One agent per AI player, using the game's own AI (or random play as a fallback). */
+/**
+ * One agent per AI player. A game's own AI thinks in the AI web worker (with a main-thread
+ * fallback); games without AI get random play.
+ */
 function createAgents(game: AnyGameDefinition, players: readonly PlayerInfo[]) {
   const agents: Record<PlayerId, AiAgent<unknown, unknown>> = {}
   for (const p of players) {
     if (p.kind !== 'ai') continue
-    agents[p.id] =
-      game.createAgent?.(p.difficulty ?? 'beginner') ?? createRandomAgent<unknown, unknown>()
+    agents[p.id] = game.createAgent
+      ? createWorkerAgent(game, p.difficulty ?? 'beginner')
+      : createRandomAgent<unknown, unknown>()
   }
   return agents
 }
