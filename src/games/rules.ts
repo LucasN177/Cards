@@ -13,4 +13,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     blackjack: lazy(() => import('./blackjack/BlackjackRules')),
     schwimmen: lazy(() => import('./schwimmen/SchwimmenRules')),
     president: lazy(() => import('./president/PresidentRules')),
+    durak: lazy(() => import('./durak/DurakRules')),
   }

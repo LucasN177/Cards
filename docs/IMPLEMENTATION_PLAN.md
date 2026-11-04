@@ -141,7 +141,11 @@ interface AiAgent<State, Action> {
    - Gemeinsame Bausteine in `features/solitaire` (Reihen mit mitziehenden Folgen, Ablageflächen,
      Tipp-Markierung, Statuszeile, Layout für Hoch- und Querformat); ein Regressionstest stellt
      sicher, dass reines Tipp-Folgen in keiner Patience im Kreis läuft
-2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President
+2. Blackjack, Crazy Eights, Schwimmen (31), Durak, President ✅
+   - **M15 – Durak ✅:** 2–6 Spieler, 36 Karten, offener Trumpf unter dem Stapel, niedrigster
+     Trumpf beginnt, Angriff und Verteidigung Karte für Karte, Beilegen durch alle oder nur den
+     Angreifer, höchstens 6 Angriffskarten (erster Angriff optional 5), Aufnehmen überspringt den
+     Verteidiger, Auffüllen auf 6; Durak ist der Letzte mit Karten; KI in drei Stufen
    - **M14 – President ✅:** 3–7 Spieler, 52 Karten (3 niedrig, 2 hoch), eine bis vier gleiche
      Karten, Passen setzt bis Stichende aus, Titel Präsident/Vize/Bürger/Vize-Bettler/Bettler,
      Punkte nach Platz, Kartentausch ab Runde 2 (abschaltbar), 3/5/10 Runden; KI in drei Stufen
