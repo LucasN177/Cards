@@ -160,6 +160,10 @@ interface AiAgent<State, Action> {
      Ziehen bis es passt, 2/Dame/Ass als Varianten, eigene Punktwertung); Mau-Mau-Regeln dafür
      über interne Felder (Blatt, Sonderränge, Wertung) parametrisiert
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
+   - **M18 – Euchre ✅:** vier Spieler in zwei Teams, 24 Karten, rechter und linker Bube, zwei
+     Reizrunden (aufgedeckte Karte bestellen, dann andere Farbe), Geber nimmt auf und legt ab,
+     „Geber muss wählen“ oder neu geben, Alleinspiel, 1/2/4 Punkte und Euchre (2 für die
+     Gegner), Partie bis 5 oder 10; KI in drei Stufen
    - **M17 – Sechsundsechzig ✅:** zwei Spieler, 24 Karten, offener Trumpf, ohne Bedienpflicht
      bis der Stapel leer oder zugedreht ist (dann Farb- und Stichzwang), Melden 20/40 (zählt ab
      dem ersten Stich), Trumpf-Neun tauschen, Zudrehen (abschaltbar), 1–3 Gewinnpunkte
