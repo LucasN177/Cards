@@ -9,6 +9,16 @@
     <link rel="icon" href="./favicon.svg" sizes="any" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./apple-touch-icon-180x180.png" />
     <title>Cards</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a light flash in dark mode.
+      try {
+        var theme = JSON.parse(localStorage.getItem('cards:settings') || '{}').state?.theme
+        var dark =
+          theme === 'dark' ||
+          (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

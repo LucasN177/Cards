@@ -96,7 +96,7 @@ interface AiAgent<State, Action> {
 
 ### Phase 2 – UI-Fundament
 
-- **M4 – App-Shell:** Routing (Spielauswahl → Konfiguration → Tisch), Settings-Store mit
+- **M4 – App-Shell ✅:** Routing (Spielauswahl → Konfiguration → Tisch), Settings-Store mit
   Persistenz, Light/Dark-Theme, erste shadcn/ui-Komponenten
 - **M5 – Tisch & Karten:** Kartenkomponente (SVG, mehrere Deck-Stile), Hand, Stapel, Tisch-Layout,
   Anbindung `GameSession` ↔ React, Animationen mit Framer Motion, Drag & Drop, Spielgeschwindigkeit
@@ -147,6 +147,6 @@ interface AiAgent<State, Action> {
 
 ## 7. Offene Fragen
 
-- Routing-Bibliothek (Vorschlag: React Router oder TanStack Router)
+- ~~Routing-Bibliothek~~ → React Router mit Hash-Routing (läuft auf GitHub Pages und offline ohne Rewrites)
 - Kartengrafiken: eigene SVGs vs. freie Sets (Lizenz prüfen)
-- i18n (Deutsch/Englisch) – für deutsche Spiele sinnvoll, früh entscheiden
+- i18n (Deutsch/Englisch) – Oberfläche vorerst auf Deutsch; Texte bei Bedarf später auslagern

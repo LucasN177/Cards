@@ -21,6 +21,6 @@ test.describe('PWA', () => {
 
     await context.setOffline(true)
     await page.reload()
-    await expect(page.getByRole('heading', { name: 'Cards' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Spielauswahl' })).toBeVisible()
   })
 })

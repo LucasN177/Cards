@@ -1,13 +1,11 @@
-import { PwaUpdatePrompt } from './PwaUpdatePrompt'
+import { createHashRouter, RouterProvider } from 'react-router'
+import { routes } from './routes'
+import { useApplyTheme } from './useTheme'
+
+// Hash routing works on GitHub Pages and offline without server-side rewrites.
+const router = createHashRouter(routes)
 
 export function App() {
-  return (
-    <>
-      <main className="flex min-h-svh flex-col items-center justify-center gap-2 bg-background p-4 text-foreground">
-        <h1 className="text-4xl font-bold tracking-tight">Cards</h1>
-        <p className="text-muted-foreground">Classic card games. Smarter opponents. Endless fun.</p>
-      </main>
-      <PwaUpdatePrompt />
-    </>
-  )
+  useApplyTheme()
+  return <RouterProvider router={router} />
 }

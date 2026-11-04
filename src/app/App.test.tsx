@@ -1,9 +1,107 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { renderRoute } from '@/test/renderRoute'
+import { useSettings } from '@/stores/settingsStore'
 import { App } from './App'
+import { resolveTheme } from './useTheme'
 
-describe('App', () => {
-  it('renders the title', () => {
+describe('game catalog', () => {
+  it('lists games by category and marks planned games', () => {
+    renderRoute('/')
+    expect(screen.getByRole('heading', { name: 'Spielauswahl' })).toBeInTheDocument()
+
+    const german = screen.getByRole('region', { name: 'Deutsche Kartenspiele' })
+    expect(within(german).getByText('Skat')).toBeInTheDocument()
+    expect(within(german).getAllByText('Bald').length).toBeGreaterThan(0)
+  })
+
+  it('links playable games to their setup page', async () => {
+    const { router, user } = renderRoute('/')
+    await user.click(screen.getByRole('link', { name: /High Card/ }))
+    expect(router.state.location.pathname).toBe('/games/high-card')
+  })
+})
+
+describe('game setup', () => {
+  it('saves the chosen setup and opens the table', async () => {
+    const { router, user } = renderRoute('/games/high-card')
+    expect(screen.getByRole('heading', { name: 'High Card' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('radio', { name: '3 Gegner' }))
+    await user.click(screen.getByRole('radio', { name: 'Experte' }))
+    await user.click(screen.getByRole('button', { name: /Spiel starten/ }))
+
+    expect(router.state.location.pathname).toBe('/play/high-card')
+    expect(useSettings.getState().games['high-card']).toEqual({
+      opponents: 3,
+      difficulty: 'expert',
+    })
+    expect(screen.getByText(/3 Gegner · Experte/)).toBeInTheDocument()
+  })
+
+  it('starts with the previously saved setup', () => {
+    useSettings.getState().setGamePreferences('high-card', { opponents: 2, difficulty: 'expert' })
+    renderRoute('/games/high-card')
+    expect(screen.getByRole('radio', { name: '2 Gegner' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Experte' })).toBeChecked()
+  })
+
+  it('shows planned games as coming soon', () => {
+    renderRoute('/games/skat')
+    expect(screen.getByText(/bald spielbar/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Spiel starten/ })).not.toBeInTheDocument()
+  })
+
+  it('shows a not-found page for unknown games and routes', () => {
+    renderRoute('/games/does-not-exist')
+    expect(screen.getByText('Dieses Spiel gibt es nicht.')).toBeInTheDocument()
+  })
+
+  it('shows a not-found page for unknown paths', () => {
+    renderRoute('/nope')
+    expect(screen.getByRole('heading', { name: 'Nicht gefunden' })).toBeInTheDocument()
+  })
+})
+
+describe('settings', () => {
+  it('persists changes to local storage', async () => {
+    const { user } = renderRoute('/settings')
+    await user.click(screen.getByRole('radio', { name: 'Schnell' }))
+    await user.click(screen.getByRole('switch', { name: 'Soundeffekte' }))
+    const name = screen.getByLabelText('Dein Name')
+    await user.clear(name)
+    await user.type(name, 'Lucas')
+
+    expect(useSettings.getState()).toMatchObject({
+      gameSpeed: 'fast',
+      sound: false,
+      playerName: 'Lucas',
+    })
+    const stored = JSON.parse(localStorage.getItem('cards:settings')!)
+    expect(stored.state.gameSpeed).toBe('fast')
+
+    await user.click(screen.getByRole('button', { name: /zurücksetzen/ }))
+    expect(useSettings.getState().gameSpeed).toBe('normal')
+  })
+})
+
+describe('theme', () => {
+  it('resolves the system preference', () => {
+    expect(resolveTheme('system', true)).toBe('dark')
+    expect(resolveTheme('system', false)).toBe('light')
+    expect(resolveTheme('light', true)).toBe('light')
+  })
+
+  it('applies the dark class and cycles via the header toggle', async () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Cards' })).toBeInTheDocument()
+    const html = document.documentElement
+    expect(html).not.toHaveClass('dark')
+
+    act(() => useSettings.getState().update({ theme: 'dark' }))
+    expect(html).toHaveClass('dark')
+
+    await userEvent.click(screen.getByRole('button', { name: /Design: Dunkel/ }))
+    expect(useSettings.getState().theme).toBe('system')
+    expect(html).not.toHaveClass('dark')
   })
 })
