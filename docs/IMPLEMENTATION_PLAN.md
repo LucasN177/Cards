@@ -160,6 +160,10 @@ interface AiAgent<State, Action> {
      Ziehen bis es passt, 2/Dame/Ass als Varianten, eigene Punktwertung); Mau-Mau-Regeln dafür
      über interne Felder (Blatt, Sonderränge, Wertung) parametrisiert
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
+   - **M17 – Sechsundsechzig ✅:** zwei Spieler, 24 Karten, offener Trumpf, ohne Bedienpflicht
+     bis der Stapel leer oder zugedreht ist (dann Farb- und Stichzwang), Melden 20/40 (zählt ab
+     dem ersten Stich), Trumpf-Neun tauschen, Zudrehen (abschaltbar), 1–3 Gewinnpunkte
+     (Schneider/Schwarz), letzter Stich +10, Partie bis 7 oder eine Hand; KI in drei Stufen
    - **M16 – Spades ✅:** vier Spieler in zwei Teams (gegenüber), Ansage 0–13 mit Nil (±100,
      abschaltbar), Pik immer Trumpf und erst nach dem Brechen ausspielbar, 10 Punkte pro
      angesagtem Stich, Überstiche als Bags (je 10 kosten 100, abschaltbar), Partie bis 250/500

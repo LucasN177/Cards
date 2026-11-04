@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -54,7 +54,7 @@ Games that focus on tactics, planning and decision-making.
 - [ ] Euchre
 - [x] President / Asshole – 3–7 players, singles to quads, passing sits out the trick, titles from President to Bettler, card exchange from round 2, 3/5/10 rounds, three AI levels
 - [ ] Wizard
-- [ ] 66 (Sechsundsechzig)
+- [x] 66 (Sechsundsechzig) – two players, 24 cards, marriages 20/40, trump-nine exchange, closing the stock, strict rules once the stock is gone, 1–3 game points per hand, match to 7, three AI levels
 
 ---
 
@@ -195,6 +195,7 @@ src
 │   ├── spades/
 │   ├── blackjack/
 │   ├── schwimmen/
+│   ├── sechsundsechzig/
 │   ├── president/
 │   ├── durak/
 │   ├── klondike/  (shown as "Solitär")
@@ -288,7 +289,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades ✓; next: Sechsundsechzig, Euchre, Wizard |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig ✓; next: Euchre, Wizard |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

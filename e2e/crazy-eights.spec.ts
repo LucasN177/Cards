@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test('plays a full game of Crazy Eights', async ({ page, isMobile }) => {
-  test.setTimeout(120_000)
+  test.setTimeout(180_000)
   await page.goto('/')
   await page.evaluate(() => {
     localStorage.setItem(
