@@ -160,6 +160,11 @@ interface AiAgent<State, Action> {
      Ziehen bis es passt, 2/Dame/Ass als Varianten, eigene Punktwertung); Mau-Mau-Regeln dafür
      über interne Felder (Blatt, Sonderränge, Wertung) parametrisiert
 3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
+   - **M16 – Spades ✅:** vier Spieler in zwei Teams (gegenüber), Ansage 0–13 mit Nil (±100,
+     abschaltbar), Pik immer Trumpf und erst nach dem Brechen ausspielbar, 10 Punkte pro
+     angesagtem Stich, Überstiche als Bags (je 10 kosten 100, abschaltbar), Partie bis 250/500
+     oder eine Hand; Schätzung fürs Ansagen; KI in drei Stufen (Experte vermeidet Bags, schützt
+     Nil)
    - **M10 – Hearts ✅:** vier Spieler, Weitergeben (links, rechts, gegenüber, keine), Kreuz 2
      beginnt, keine Punkte im ersten Stich, Herz brechen, Shoot the Moon (26 für die anderen
      oder −26), Karo-Bube −10 (Variante), Partie bis 50/100 Punkte oder eine Hand; KI Anfänger,

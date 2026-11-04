@@ -112,7 +112,7 @@ export default function DurakTable({ session: anySession, humanId }: GameBodyPro
           </div>
           <DropZone ref={centerRef} active={dragging} label="Tisch">
             <div
-              className="grid min-h-[calc(var(--card-h)*1.3)] min-w-[calc(var(--card-w)*2)] grid-cols-3 gap-x-2 gap-y-3 p-1"
+              className="pointer-events-none grid min-h-[calc(var(--card-h)*1.3)] min-w-[calc(var(--card-w)*2)] grid-cols-3 gap-x-2 gap-y-3 p-1 [@media(max-height:500px)]:grid-cols-6"
               aria-label="Angriffe auf dem Tisch"
               role="list"
             >

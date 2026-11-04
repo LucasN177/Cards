@@ -35,7 +35,7 @@ test('President: play rounds with the card exchange until the game ends', async 
   const passen = page.getByRole('button', { name: 'Passen' })
   const abgeben = page.getByRole('button', { name: /^Abgeben/ })
   const next = page.getByRole('button', { name: 'Nächste Runde' })
-  for (let step = 0; step < 400 && !(await gameOver.isVisible()); step++) {
+  for (let step = 0; step < 1000 && !(await gameOver.isVisible()); step++) {
     if (await next.isVisible()) await next.click()
     else if (await abgeben.isVisible()) {
       await tap(hand.getByRole('button').nth(0))
@@ -44,7 +44,8 @@ test('President: play rounds with the card exchange until the game ends', async 
     } else if (await legen.isVisible()) {
       // The weakest allowed card; pass if it does not fit (e.g. a pair is needed).
       const playable = hand.locator('button[aria-disabled="false"]').first()
-      if ((await playable.count()) > 0) await tap(playable)
+      const selected = hand.locator('button[aria-pressed="true"]')
+      if ((await selected.count()) === 0 && (await playable.count()) > 0) await tap(playable)
       if (await legen.isEnabled()) await legen.click()
       else if (await passen.isVisible()) await passen.click()
     } else await page.waitForTimeout(100)

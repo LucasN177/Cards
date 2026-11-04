@@ -14,4 +14,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     schwimmen: lazy(() => import('./schwimmen/SchwimmenRules')),
     president: lazy(() => import('./president/PresidentRules')),
     durak: lazy(() => import('./durak/DurakRules')),
+    spades: lazy(() => import('./spades/SpadesRules')),
   }
