@@ -186,7 +186,13 @@ interface AiAgent<State, Action> {
      Fortgeschritten (Heuristik), Experte (Determinization mit Fehlfarben und bekannten
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
      Auswahlmodus der Hand zum Weitergeben
-4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
+4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge ✅
+   - **M23 – Bridge ✅:** Chicago mit vier Spielern (Süd/Nord gegen Ost/West), Reizung 1–7 in
+     ♣ ♦ ♥ ♠ SA mit Passe, Kontra, Rekontra, Alleinspieler und Dummy (offen nach dem Ausspiel,
+     der Alleinspieler spielt beide Hände), Wertung im Turnierstil (Teil-/Vollspiel, Schlemm,
+     Überstiche, Faller kontriert/rekontriert), Gefahrenlage nach Chicago, 4/8/12 Austeilungen;
+     KI reizt nach Figuren- und Längenpunkten mit Fit-Suche und spielt mit Trumpfziehen, Ausspiel
+     von Sequenzen und Zählen der höchsten Karten
    - **M22 – Schafkopf ✅:** vier Spieler, 32 Karten mit bayerischen Namen, Sauspiel mit gerufener
      Sau (Sau muss auf die gesuchte Farbe, darf nicht abgeworfen werden, davonlaufen ab vier),
      Wenz (abschaltbar) und Farbsolo, höheres Spiel sticht niedrigeres, Zusammenwerfen, Tarif

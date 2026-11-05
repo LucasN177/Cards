@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -30,7 +30,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [x] Crazy Eights – 52 cards, wild eights, draw until a card fits, optional twos/queens/aces (shares its rules engine with Mau-Mau)
 - [x] Hearts – 52 cards or 32 cards (7–Ace), passing (left, right, across, none), Durchmarsch (all penalty cards; worth 16 when playing to 51), optional jack of diamonds, play to 50/51/100 points or a single hand
 - [x] Spades – two partnerships, bids 0–13 with optional nil, spades always trump and only led once broken, bags with optional 10-bag penalty, play to 250/500 or one hand, bid estimate, three AI levels
-- [ ] Bridge
+- [x] Bridge – Chicago for four, auction with double and redouble, declarer plays the open dummy, duplicate-style scoring with vulnerability, bidding box, three AI levels
 
 ### 🎴 German Card Games
 
@@ -195,6 +195,7 @@ src
 │   ├── hearts/
 │   ├── spades/
 │   ├── blackjack/
+│   ├── bridge/
 │   ├── schafkopf/
 │   ├── schwimmen/
 │   ├── sechsundsechzig/
@@ -294,7 +295,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf ✓; next: Bridge |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge ✓; next: discard games (Rommé, Gin Rummy, Canasta, Cribbage), then Texas Hold'em |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

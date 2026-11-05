@@ -56,7 +56,7 @@ describe('game setup', () => {
   })
 
   it('shows planned games as coming soon', () => {
-    renderRoute('/games/bridge')
+    renderRoute('/games/canasta')
     expect(screen.getByText(/bald spielbar/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Spiel starten/ })).not.toBeInTheDocument()
   })

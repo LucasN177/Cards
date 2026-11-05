@@ -21,4 +21,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     skat: lazy(() => import('./skat/SkatRules')),
     doppelkopf: lazy(() => import('./doppelkopf/DoppelkopfRules')),
     schafkopf: lazy(() => import('./schafkopf/SchafkopfRules')),
+    bridge: lazy(() => import('./bridge/BridgeRules')),
   }
