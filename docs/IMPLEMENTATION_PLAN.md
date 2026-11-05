@@ -187,6 +187,12 @@ interface AiAgent<State, Action> {
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
      Auswahlmodus der Hand zum Weitergeben
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
+   - **M20 – Skat ✅:** drei Spieler, 32 Karten, Reizen in drei Stufen (Mittelhand reizt Vorhand,
+     Hinterhand den Sieger, sonst darf Vorhand 18 spielen; alle passen → neu geben), Skat
+     aufnehmen und drücken oder Hand, Farbspiele, Grand, Null (Hand/ouvert), Spitzen mit/ohne,
+     Schneider/Schwarz (angesagt nur im Handspiel), Überreizen, Wertung als Spielwert oder
+     Seeger-Fabian; 3/6/12 Spiele; Anzeige des Mindestwerts je Spiel beim Ansagen; KI in drei
+     Stufen (Reizgrenze aus Blattstärke, Drücken über alle Kartenpaare, Stichspiel mit Schmieren)
 5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage
 6. Texas Hold'em Poker
 

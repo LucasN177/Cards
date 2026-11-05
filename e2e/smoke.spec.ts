@@ -23,7 +23,7 @@ test('navigates between pages and keeps settings after reload', async ({ page })
 })
 
 test('deep links work', async ({ page }) => {
-  await page.goto('/#/games/skat')
-  await expect(page.getByRole('heading', { name: 'Skat' })).toBeVisible()
+  await page.goto('/#/games/doppelkopf')
+  await expect(page.getByRole('heading', { name: 'Doppelkopf' })).toBeVisible()
   await expect(page.getByText(/bald spielbar/)).toBeVisible()
 })
