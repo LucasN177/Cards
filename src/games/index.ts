@@ -3,6 +3,7 @@ import { highCardGame } from '@/engine/testing/highCardGame'
 import { TEST_GAMES_ENABLED } from './flags'
 import { blackjackGame } from './blackjack/blackjack'
 import { crazyEightsGame } from './crazy-eights'
+import { doppelkopfGame } from './doppelkopf'
 import { freeCellGame } from './freecell/freecell'
 import { heartsGame } from './hearts'
 import { klondikeGame } from './klondike/klondike'
@@ -33,6 +34,7 @@ const GAMES = [
   euchreGame,
   wizardGame,
   skatGame,
+  doppelkopfGame,
 ]
 
 /** Registers all playable games. Imported once at app start. */

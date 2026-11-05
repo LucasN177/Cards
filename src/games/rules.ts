@@ -19,4 +19,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     euchre: lazy(() => import('./euchre/EuchreRules')),
     wizard: lazy(() => import('./wizard/WizardRules')),
     skat: lazy(() => import('./skat/SkatRules')),
+    doppelkopf: lazy(() => import('./doppelkopf/DoppelkopfRules')),
   }

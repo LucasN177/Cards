@@ -187,6 +187,11 @@ interface AiAgent<State, Action> {
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
      Auswahlmodus der Hand zum Weitergeben
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
+   - **M21 – Doppelkopf ✅:** vier Spieler, 48 Karten mit oder 40 ohne Neunen, Re (Kreuz-Damen)
+     gegen Kontra, stille Hochzeit, Vorbehalt mit Damen-, Buben-, Farb- und fleischlosem Solo,
+     Ansagen Re/Kontra und Absagen bis schwarz (mit Kartenfristen), Ziele nach Ansage, Wertung
+     nach DDV-Muster (gegen die Alten, keine 90/60/30, schwarz, Ansagen) mit Sonderpunkten
+     (Fuchs, Doppelkopf, Karlchen), Solist ×3; 4/8/12 Spiele; KI in drei Stufen
    - **M20 – Skat ✅:** drei Spieler, 32 Karten, Reizen in drei Stufen (Mittelhand reizt Vorhand,
      Hinterhand den Sieger, sonst darf Vorhand 18 spielen; alle passen → neu geben), Skat
      aufnehmen und drücken oder Hand, Farbspiele, Grand, Null (Hand/ouvert), Spitzen mit/ohne,
