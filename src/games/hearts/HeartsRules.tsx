@@ -14,7 +14,10 @@ export default function HeartsRules({ options }: RulesProps) {
 
       <RulesSection title="Karten und Weitergeben">
         <RulesList>
-          <li>Gespielt wird mit 52 Karten, jeder bekommt 13. Ass ist die höchste Karte.</li>
+          <li>
+            Gespielt wird mit 52 Karten (jeder bekommt 13) oder – je nach Einstellung – mit 32
+            Karten von 7 bis Ass (jeder bekommt 8). Ass ist die höchste Karte.
+          </li>
           <li>
             Vor jeder Hand gibst du <strong>drei Karten</strong> weiter: in der ersten Hand nach
             links, dann nach rechts, dann zum Gegenüber, in der vierten Hand gar nicht – danach von
@@ -26,7 +29,8 @@ export default function HeartsRules({ options }: RulesProps) {
       <RulesSection title="Spielablauf">
         <RulesList>
           <li>
-            Wer die <strong>Kreuz 2</strong> hat, spielt sie zum ersten Stich aus.
+            Wer die <strong>niedrigste Kreuz</strong> hat (Kreuz 2, mit 32 Karten Kreuz 7), spielt
+            sie zum ersten Stich aus.
           </li>
           <li>
             Es herrscht <strong>Bedienpflicht</strong>: Wer die ausgespielte Farbe hat, muss sie
@@ -61,12 +65,13 @@ export default function HeartsRules({ options }: RulesProps) {
           </tbody>
         </table>
         <p>
-          Pro Hand werden also 26 Punkte verteilt. <strong>Shoot the Moon:</strong> Wer alle Herzen
-          und die Pik-Dame bekommt, kehrt das um – je nach Einstellung bekommen alle anderen 26
-          Punkte, oder der Schütze selbst erhält 26 abgezogen.
+          Pro Hand werden also 26 Punkte verteilt, mit 32 Karten 21. <strong>Durchmarsch:</strong>{' '}
+          Wer alle Herzen und die Pik-Dame bekommt, kehrt das um – je nach Einstellung bekommen alle
+          anderen diese Punkte, oder sie werden ihm selbst abgezogen. Beim Spiel bis 51 Punkte zählt
+          ein Durchmarsch immer 16 Punkte.
         </p>
         <p>
-          Gespielt werden so viele Hände, bis jemand die Zielpunktzahl erreicht (Standard: 100).
+          Gespielt werden so viele Hände, bis jemand die Zielpunktzahl erreicht (100, 51 oder 50).
           Dann gewinnt, wer die wenigsten Punkte hat; bei Gleichstand teilen sich mehrere den Sieg.
           Nach jeder Hand zeigt die App den Zwischenstand.
         </p>

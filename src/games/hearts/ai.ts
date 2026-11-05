@@ -158,7 +158,7 @@ export function determinize(view: HeartsView, self: PlayerId, rng: Rng): HeartsS
     }
   }
   const unseen = rng.shuffle(
-    (createDeck('standard52') as SuitedCard[]).filter((c) => !known.has(c.id)),
+    (createDeck(view.options.deck) as SuitedCard[]).filter((c) => !known.has(c.id)),
   )
   const opponents = view.order.filter((p) => p !== self)
   for (const card of unseen) {

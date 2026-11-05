@@ -304,3 +304,72 @@ describe('simulation', () => {
     expect(await averagePoints(() => createHeartsAgent('expert'), 30)).toBeLessThan(6.5)
   })
 })
+
+describe('32 cards and the Durchmarsch at 51', () => {
+  const short = { deck: 'piquet32' as const }
+
+  it('deals eight cards each from 7 to ace; the club 7 opens', () => {
+    const state = rules.setup({
+      players,
+      options: { ...DEFAULT_HEARTS_OPTIONS, ...short, passing: false },
+      seed: 4,
+    })
+    expect(order.map((p) => state.hands[p]!.length)).toEqual([8, 8, 8, 8])
+    const all = order.flatMap((p) => state.hands[p]!)
+    expect(all.every((c) => !['2', '3', '4', '5', '6'].includes(c.rank))).toBe(true)
+    expect(ids(playableCards(state, state.turn))).toEqual(['7C'])
+  })
+
+  /** Plays the last of eight tricks so the hand gets scored. */
+  function finishShortHand(taken: Record<string, string>, options: Partial<HeartsOptions> = {}) {
+    let next = playing({
+      hands: { a: '7C', b: '8C', c: '9C', d: '10C' },
+      taken,
+      tricksPlayed: 7,
+      options: { targetScore: 0, ...short, ...options },
+    })
+    for (const p of order)
+      next = rules.applyAction(next, p, { type: 'play', cardId: next.hands[p]![0]!.id })
+    return next
+  }
+  const shortHearts = '7H 8H 9H 10H JH QH KH AH'
+
+  it('ends the hand after eight tricks; a Durchmarsch is worth 21', () => {
+    expect(finishShortHand({ a: `${shortHearts} QS` }).handResults[0]).toEqual({
+      a: 0,
+      b: 21,
+      c: 21,
+      d: 21,
+    })
+  })
+
+  it('gives 16 for a Durchmarsch when playing to 51 – with either deck', () => {
+    expect(finishShortHand({ a: `${shortHearts} QS` }, { targetScore: 51 }).handResults[0]).toEqual(
+      { a: 0, b: 16, c: 16, d: 16 },
+    )
+    const long = playing({
+      hands: { a: '2C', b: '3C', c: '4C', d: '5C' },
+      taken: { a: '2H 3H 4H 5H 6H 7H 8H 9H 10H JH QH KH AH QS' },
+      tricksPlayed: 12,
+      options: { targetScore: 51, shootTheMoon: 'self' },
+    })
+    let next = long
+    for (const p of order)
+      next = rules.applyAction(next, p, { type: 'play', cardId: next.hands[p]![0]!.id })
+    expect(next.handResults[0]).toEqual({ a: -16, b: 0, c: 0, d: 0 })
+  })
+
+  it('plays whole games with 32 cards to 51', async () => {
+    for (let seed = 0; seed < 10; seed++) {
+      const { session } = await simulateGame(heartsGame, {
+        players,
+        agents: Object.fromEntries(order.map((p) => [p, createHeartsAgent('intermediate')])),
+        options: { ...short, targetScore: 51 },
+        seed,
+      })
+      expect(session.state.phase).toBe('over')
+      for (const hand of session.state.handResults)
+        expect([21, 48]).toContain(order.reduce((sum, p) => sum + hand[p]!, 0))
+    }
+  })
+})

@@ -69,7 +69,7 @@ function HandSummary({
           {moon && (
             <p className="mt-1 font-medium text-yellow-600 dark:text-yellow-400">
               {moon === humanId ? 'Du hast' : `${nameOf(moon)} hat`} alle Strafkarten bekommen –
-              Shoot the Moon!
+              Durchmarsch!
             </p>
           )}
         </div>
@@ -156,7 +156,7 @@ export default function HeartsTable({
   else if (myTurn) {
     prompt =
       view.tricksPlayed === 0 && view.trick.length === 0
-        ? 'Du beginnst mit der Kreuz 2'
+        ? `Du beginnst mit der Kreuz ${view.options.deck === 'piquet32' ? '7' : '2'}`
         : 'Du bist dran'
   } else prompt = `${nameOf(view.turn)} ist am Zug …`
 

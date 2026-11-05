@@ -16,7 +16,7 @@ export const heartsGame = defineGame<HeartsState, HeartsAction, HeartsOptions, H
     { key: 'hands', label: 'Gespielte Hände' },
     { key: 'penalty', label: 'Strafpunkte' },
     { key: 'cleanHands', label: 'Hände ohne Punkte' },
-    { key: 'moons', label: 'Shoot the Moon' },
+    { key: 'moons', label: 'Durchmarsch' },
   ],
   summarize({ finalState, player }) {
     const hands = finalState.handResults

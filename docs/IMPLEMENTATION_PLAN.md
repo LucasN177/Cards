@@ -173,9 +173,11 @@ interface AiAgent<State, Action> {
      angesagtem Stich, Überstiche als Bags (je 10 kosten 100, abschaltbar), Partie bis 250/500
      oder eine Hand; Schätzung fürs Ansagen; KI in drei Stufen (Experte vermeidet Bags, schützt
      Nil)
-   - **M10 – Hearts ✅:** vier Spieler, Weitergeben (links, rechts, gegenüber, keine), Kreuz 2
-     beginnt, keine Punkte im ersten Stich, Herz brechen, Shoot the Moon (26 für die anderen
-     oder −26), Karo-Bube −10 (Variante), Partie bis 50/100 Punkte oder eine Hand; KI Anfänger,
+   - **M10 – Hearts ✅:** vier Spieler, 52 oder 32 Karten (7 bis Ass, je 8), Weitergeben (links,
+     rechts, gegenüber, keine), niedrigste Kreuz beginnt, keine Punkte im ersten Stich, Herz
+     brechen, Durchmarsch (alle Strafpunkte – 26 bzw. 21 – für die anderen oder abgezogen; beim
+     Spiel bis 51 immer 16), Karo-Bube −10 (Variante), Partie bis 50/51/100 Punkte oder eine Hand;
+     KI Anfänger,
      Fortgeschritten (Heuristik), Experte (Determinization mit Fehlfarben und bekannten
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
      Auswahlmodus der Hand zum Weitergeben
