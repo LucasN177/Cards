@@ -27,7 +27,11 @@ export function suitName(suit: Suit, style: DeckStyle): string {
 
 /** Accessible name, e.g. "Herz Dame" or "Eichel Ober". */
 export function cardName(card: Card, style: DeckStyle): string {
-  if (card.kind === 'joker') return card.color === 'red' ? 'Roter Joker' : 'Schwarzer Joker'
+  if (card.kind === 'joker') {
+    if (card.face === 'wizard') return 'Zauberer'
+    if (card.face === 'jester') return 'Narr'
+    return card.color === 'red' ? 'Roter Joker' : 'Schwarzer Joker'
+  }
   return `${suitName(card.suit, style)} ${FACE_NAMES[style][card.rank] ?? card.rank}`
 }
 

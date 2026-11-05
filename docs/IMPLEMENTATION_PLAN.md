@@ -159,7 +159,12 @@ interface AiAgent<State, Action> {
    - **M11 – Crazy Eights ✅:** nutzt die Mau-Mau-Regeln mit eigenem Regelsatz (52 Karten, 8 wild,
      Ziehen bis es passt, 2/Dame/Ass als Varianten, eigene Punktwertung); Mau-Mau-Regeln dafür
      über interne Felder (Blatt, Sonderränge, Wertung) parametrisiert
-3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard
+3. Stichspiele: Hearts, Spades, 66, Euchre, Wizard ✅
+   - **M19 – Wizard ✅:** 3–6 Spieler, 60 Karten (52 + 4 Zauberer + 4 Narren als Sonderkarten
+     der Engine), Runde n mit n Karten, aufgedeckter Trumpf (Narr: kein Trumpf, Zauberer: Geber
+     wählt), Ansagen 0–n (optional „dürfen nicht aufgehen“), Bedienpflicht mit Zauberer/Narr
+     immer erlaubt, erster Zauberer gewinnt, 20 + 10 pro Stich bzw. −10 pro Abweichung; alle,
+     halbe oder 5 Runden; Schätzung fürs Ansagen; KI in drei Stufen
    - **M18 – Euchre ✅:** vier Spieler in zwei Teams, 24 Karten, rechter und linker Bube, zwei
      Reizrunden (aufgedeckte Karte bestellen, dann andere Farbe), Geber nimmt auf und legt ab,
      „Geber muss wählen“ oder neu geben, Alleinspiel, 1/2/4 Punkte und Euchre (2 für die

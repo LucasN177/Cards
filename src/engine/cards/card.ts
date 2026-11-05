@@ -28,7 +28,11 @@ export interface JokerCard {
   readonly id: CardId
   readonly kind: 'joker'
   readonly color: CardColor
+  /** Special jokers of some games: Wizard's wizards (Zauberer) and jesters (Narren). */
+  readonly face?: SpecialFace
 }
+
+export type SpecialFace = 'wizard' | 'jester'
 
 export type Card = SuitedCard | JokerCard
 
@@ -63,14 +67,30 @@ export function jokerCard(color: CardColor, copy = 0): JokerCard {
   return { id: `JK${color === 'red' ? 'R' : 'B'}${copySuffix(copy)}`, kind: 'joker', color }
 }
 
-const CARD_CODE = /^(?:(10|[2-9JQKA])([CSHD])|JK([RB]))(?::(\d+))?$/
+/** A wizard (`Z1` … `Z4`) or jester (`N1` … `N4`) for Wizard. */
+export function specialCard(face: SpecialFace, number: number): JokerCard {
+  return {
+    id: `${face === 'wizard' ? 'Z' : 'N'}${number}`,
+    kind: 'joker',
+    color: face === 'wizard' ? 'red' : 'black',
+    face,
+  }
+}
 
-/** Parses a card code such as `QH`, `10S`, `AS:1` or `JKR`. Handy for tests and fixtures. */
+export const isWizard = (card: Card): card is JokerCard =>
+  card.kind === 'joker' && card.face === 'wizard'
+export const isJester = (card: Card): card is JokerCard =>
+  card.kind === 'joker' && card.face === 'jester'
+
+const CARD_CODE = /^(?:(10|[2-9JQKA])([CSHD])|JK([RB])|([ZN])(\d))(?::(\d+))?$/
+
+/** Parses a card code such as `QH`, `10S`, `AS:1`, `JKR` or `Z1` (wizard) / `N1` (jester). Handy for tests and fixtures. */
 export function parseCard(code: string): Card {
   const match = CARD_CODE.exec(code)
   if (!match) throw new Error(`Invalid card code: "${code}"`)
-  const [, rank, suitCode, jokerColor, copy] = match
+  const [, rank, suitCode, jokerColor, special, number, copy] = match
   const copyIndex = copy ? Number(copy) : 0
+  if (special) return specialCard(special === 'Z' ? 'wizard' : 'jester', Number(number))
   if (jokerColor) return jokerCard(jokerColor === 'R' ? 'red' : 'black', copyIndex)
   return suitedCard(rank as Rank, SUIT_BY_CODE[suitCode!]!, copyIndex)
 }

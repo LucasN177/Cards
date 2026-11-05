@@ -38,6 +38,48 @@ export function CardFace({
   style: DeckStyle
   topIndex?: boolean
 }) {
+  if (card.kind === 'joker' && card.face) {
+    const wizard = card.face === 'wizard'
+    const color = wizard ? '#1d4ed8' : '#7c3aed'
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="size-full" aria-hidden>
+        <rect
+          x="2"
+          y="2"
+          width={W - 4}
+          height={H - 4}
+          rx="18"
+          fill={wizard ? '#eff6ff' : '#f5f3ff'}
+          stroke="#d4d4d8"
+          strokeWidth="3"
+        />
+        <Corner label={wizard ? 'Z' : 'N'} color={color} />
+        <Corner label={wizard ? 'Z' : 'N'} color={color} rotate />
+        <text
+          x={W / 2}
+          y={H / 2 - 10}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="120"
+          fill={color}
+        >
+          {wizard ? '✦' : '☺'}
+        </text>
+        <text
+          x={W / 2}
+          y={H / 2 + 70}
+          textAnchor="middle"
+          fontSize="30"
+          fontWeight={700}
+          fill={color}
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+        >
+          {wizard ? 'ZAUBERER' : 'NARR'}
+        </text>
+      </svg>
+    )
+  }
+
   if (card.kind === 'joker') {
     const color = card.color === 'red' ? '#d32f2f' : '#1f2937'
     return (
