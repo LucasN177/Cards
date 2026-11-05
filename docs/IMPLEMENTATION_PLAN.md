@@ -187,6 +187,10 @@ interface AiAgent<State, Action> {
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
      Auswahlmodus der Hand zum Weitergeben
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge
+   - **M22 – Schafkopf ✅:** vier Spieler, 32 Karten mit bayerischen Namen, Sauspiel mit gerufener
+     Sau (Sau muss auf die gesuchte Farbe, darf nicht abgeworfen werden, davonlaufen ab vier),
+     Wenz (abschaltbar) und Farbsolo, höheres Spiel sticht niedrigeres, Zusammenwerfen, Tarif
+     10/50 mit Schneider, Schwarz und Laufenden; 4/8/12 Spiele; KI in drei Stufen
    - **M21 – Doppelkopf ✅:** vier Spieler, 48 Karten mit oder 40 ohne Neunen, Re (Kreuz-Damen)
      gegen Kontra, stille Hochzeit, Vorbehalt mit Damen-, Buben-, Farb- und fleischlosem Solo,
      Ansagen Re/Kontra und Absagen bis schwarz (mit Kartenfristen), Ziele nach Ansage, Wertung

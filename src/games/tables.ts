@@ -21,6 +21,7 @@ export const GAME_TABLES: Readonly<Record<string, TableComponent>> = {
   wizard: lazy(() => import('./wizard/WizardTable')),
   skat: lazy(() => import('./skat/SkatTable')),
   doppelkopf: lazy(() => import('./doppelkopf/DoppelkopfTable')),
+  schafkopf: lazy(() => import('./schafkopf/SchafkopfTable')),
   // Same condition as TEST_GAMES_ENABLED, written inline so the bundler can drop the chunk.
   ...(import.meta.env.DEV || import.meta.env.VITE_ENABLE_TEST_GAMES === 'true'
     ? { 'high-card': lazy(() => import('./high-card/HighCardTable')) }

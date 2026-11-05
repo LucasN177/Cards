@@ -181,7 +181,7 @@ function DeclarePanel({
     )
   }
   return (
-    <div className={cn('flex max-w-md flex-col items-center gap-2', LIFT_CLEARANCE)}>
+    <div className={cn('flex max-w-3xl flex-col items-center gap-2', LIFT_CLEARANCE)}>
       <div
         className="flex flex-wrap justify-center gap-1.5"
         role="group"

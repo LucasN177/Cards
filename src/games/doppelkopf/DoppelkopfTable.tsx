@@ -289,29 +289,36 @@ export default function DoppelkopfTable({
               })}
             </p>
             {myTurn && view.phase === 'reservation' && (
-              <div className={cn('flex max-w-md flex-col items-center gap-2', LIFT_CLEARANCE)}>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    className="h-11"
-                    onClick={() => act({ type: 'healthy' })}
-                  >
-                    Gesund
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="h-11"
-                    onClick={() => setSoloOpen((o) => !o)}
-                  >
-                    Solo …
-                  </Button>
-                </div>
+              <div className={cn('flex max-w-3xl flex-col items-center gap-2', LIFT_CLEARANCE)}>
+                {/* One row at a time, so the choice fits above the hand on phones in landscape. */}
+                {!soloOpen && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="h-11"
+                      onClick={() => act({ type: 'healthy' })}
+                    >
+                      Gesund
+                    </Button>
+                    <Button variant="secondary" className="h-11" onClick={() => setSoloOpen(true)}>
+                      Solo …
+                    </Button>
+                  </div>
+                )}
                 {soloOpen && (
                   <div
                     className="flex flex-wrap justify-center gap-1.5"
                     role="group"
                     aria-label="Solo wählen"
                   >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-10 text-white"
+                      onClick={() => setSoloOpen(false)}
+                    >
+                      Zurück
+                    </Button>
                     {SOLO_CHOICES.map((kind) => (
                       <Button
                         key={kind}

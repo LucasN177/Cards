@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -38,7 +38,7 @@ Popular card games with regional rules and variations.
 
 - [x] Skat – three players, bidding in three stages, Skat pickup and discard or Hand, suit games, Grand and Null (Hand/ouvert), matadors, Schneider/Schwarz (announced in Hand games), overbidding, standard or Seeger-Fabian scoring, minimum value shown per game when declaring, three AI levels
 - [x] Doppelkopf – 48 cards with or 40 without nines, Re vs. Kontra, silent wedding, solos (queens, jacks, suit, fleischlos), Re/Kontra and absagen down to schwarz, DDV-style scoring with Fuchs, Doppelkopf and Karlchen, three AI levels
-- [ ] Schafkopf
+- [x] Schafkopf – Sauspiel with a called ace (incl. running away), Wenz and suit solos, throwing in when all pass, tariff 10/50 with Schneider, Schwarz and Laufende, three AI levels
 - [ ] Doppelkopf with different rule sets
 - [x] Schwimmen (31) – 2–9 players, swap one or all cards, pass (new middle when everybody passes), knock, 31 ends the round ("Feuer"), 2–4 lives plus swimming, three AI levels
 - [x] Durak – 2–6 players, 36 cards, trump from the stock, attack and defend card by card, throw-ins by everybody or only the attacker, at most six attack cards, refill to six, three AI levels
@@ -195,6 +195,7 @@ src
 │   ├── hearts/
 │   ├── spades/
 │   ├── blackjack/
+│   ├── schafkopf/
 │   ├── schwimmen/
 │   ├── sechsundsechzig/
 │   ├── skat/
@@ -293,7 +294,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf ✓; next: Schafkopf, Bridge |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf ✓; next: Bridge |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 
