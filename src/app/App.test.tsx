@@ -13,7 +13,9 @@ describe('game catalog', () => {
 
     const german = screen.getByRole('region', { name: 'Deutsche Kartenspiele' })
     expect(within(german).getByText('Skat')).toBeInTheDocument()
-    expect(within(german).getAllByText('Bald').length).toBeGreaterThan(0)
+    // Cribbage is still on the roadmap.
+    const strategic = screen.getByRole('region', { name: 'Taktik & Strategie' })
+    expect(within(strategic).getAllByText('Bald').length).toBeGreaterThan(0)
   })
 
   it('links playable games to their setup page', async () => {
@@ -56,7 +58,7 @@ describe('game setup', () => {
   })
 
   it('shows planned games as coming soon', () => {
-    renderRoute('/games/canasta')
+    renderRoute('/games/cribbage')
     expect(screen.getByText(/bald spielbar/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Spiel starten/ })).not.toBeInTheDocument()
   })
