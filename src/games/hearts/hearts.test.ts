@@ -8,6 +8,7 @@ import {
   type HeartsOptions,
   type HeartsState,
   type HeartsView,
+  firstLeader,
   passDirection,
   passTargetOf,
   playableCards,
@@ -70,7 +71,11 @@ describe('setup and passing', () => {
   })
 
   it('exchanges three cards once everybody has chosen, then the two of clubs leads', () => {
-    let state = rules.setup({ players, options: DEFAULT_HEARTS_OPTIONS, seed: 2 })
+    let state = rules.setup({
+      players,
+      options: { ...DEFAULT_HEARTS_OPTIONS, firstLead: 'lowestClub' },
+      seed: 2,
+    })
     const passed: Record<string, string[]> = {}
     for (const p of order) {
       const pick = ids(state.hands[p]!.slice(0, 3))
@@ -156,6 +161,45 @@ describe('playing', () => {
     expect(state.lastTrick?.winner).toBe('d')
     expect(state.turn).toBe('d')
     expect(trickPoints(state.taken['d']!)).toBe(1)
+  })
+})
+
+describe('who opens a hand', () => {
+  it('rotates clockwise from hand to hand; any card may be led', () => {
+    const options = { ...DEFAULT_HEARTS_OPTIONS, passing: false }
+    const state = rules.setup({ players, options, seed: 7 })
+    expect(state.turn).toBe('a')
+    expect(playableCards(state, 'a')).toHaveLength(13)
+    const hands = state.hands
+    expect([1, 2, 3, 4].map((n) => firstLeader(hands, order, n, options))).toEqual([
+      'b',
+      'c',
+      'd',
+      'a',
+    ])
+  })
+
+  it('leads the next hand with the next player after a finished hand', () => {
+    let state = playing({
+      hands: { a: '2C', b: '3C', c: '4C', d: '5C' },
+      tricksPlayed: 12,
+      options: { targetScore: 100, passing: false },
+    })
+    for (const p of order)
+      state = rules.applyAction(state, p, { type: 'play', cardId: state.hands[p]![0]!.id })
+    expect(state.handNumber).toBe(1)
+    expect(state.turn).toBe('b')
+  })
+
+  it('opens after passing with the player whose turn it is', () => {
+    let state = rules.setup({ players, options: DEFAULT_HEARTS_OPTIONS, seed: 2 })
+    for (const p of order)
+      state = rules.applyAction(state, p, {
+        type: 'pass',
+        cardIds: state.hands[p]!.slice(0, 3).map((c) => c.id),
+      })
+    expect(state.phase).toBe('playing')
+    expect(state.turn).toBe('a')
   })
 })
 
@@ -314,7 +358,7 @@ describe('32 cards and the Durchmarsch at 51', () => {
   it('deals eight cards each from 7 to ace; the club 7 opens', () => {
     const state = rules.setup({
       players,
-      options: { ...DEFAULT_HEARTS_OPTIONS, ...short, passing: false },
+      options: { ...DEFAULT_HEARTS_OPTIONS, ...short, passing: false, firstLead: 'lowestClub' },
       seed: 4,
     })
     expect(order.map((p) => state.hands[p]!.length)).toEqual([8, 8, 8, 8])
@@ -415,7 +459,7 @@ describe('three and five players with a pot', () => {
     const three = ['a', 'b', 'c']
     const state = rules.setup({
       players: infos(three),
-      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false },
+      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false, firstLead: 'lowestClub' },
       seed: 1,
     })
     const forced: HeartsState = {

@@ -169,7 +169,7 @@ export default function HeartsTable({
   } else if (session.isOver) prompt = 'Spiel beendet'
   else if (myTurn) {
     prompt =
-      view.tricksPlayed === 0 && view.trick.length === 0
+      view.tricksPlayed === 0 && view.trick.length === 0 && view.options.firstLead !== 'rotate'
         ? `Du beginnst mit ${cardName(view.hand.find((c) => legalIds.has(c.id)) ?? view.hand[0]!, style)}`
         : 'Du bist dran'
   } else prompt = `${nameOf(view.turn)} ist am Zug …`

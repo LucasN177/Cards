@@ -37,8 +37,17 @@ export default function HeartsRules({ options }: RulesProps) {
       <RulesSection title="Spielablauf">
         <RulesList>
           <li>
-            Wer die <strong>niedrigste Kreuz</strong> hat (Kreuz 2, mit 32 Karten Kreuz 7 – liegt
-            sie im Topf, die nächsthöhere), spielt sie zum ersten Stich aus.
+            Die Hände werden <strong>reihum</strong> eröffnet: Die erste Hand spielt der erste
+            Spieler aus, jede weitere der nächste im Uhrzeigersinn – mit einer beliebigen Karte.
+          </li>
+          <li>
+            Je nach Einstellung beginnt stattdessen, wer die <strong>niedrigste Kreuz</strong> hat
+            (Kreuz 2, mit 32 Karten Kreuz 7 – liegt sie im Topf, die nächsthöhere); er muss sie zum
+            ersten Stich ausspielen.
+          </li>
+          <li>
+            Gespielt wird immer <strong>im Uhrzeigersinn</strong>. Wer einen Stich gewinnt, spielt
+            den nächsten aus.
           </li>
           <li>
             Es herrscht <strong>Bedienpflicht</strong>: Wer die ausgespielte Farbe hat, muss sie
@@ -50,7 +59,7 @@ export default function HeartsRules({ options }: RulesProps) {
           </li>
           <li>
             Den Stich gewinnt die <strong>höchste Karte der ausgespielten Farbe</strong>. Trümpfe
-            gibt es nicht. Wer den Stich gewinnt, spielt den nächsten aus.
+            gibt es nicht.
           </li>
           <li>
             <strong>Herz</strong> darf jederzeit ausgespielt und abgeworfen werden – Herz muss nicht

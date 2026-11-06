@@ -37,6 +37,11 @@ export interface HeartsOptions {
   readonly shootTheMoon: 'others' | 'self'
   /** Variant: whoever takes the jack of diamonds gets −10 points. */
   readonly jackOfDiamonds: boolean
+  /**
+   * Who opens each hand: in turn (hand 1 the first player, then clockwise; any card may be led)
+   * or the holder of the lowest club, who must lead it.
+   */
+  readonly firstLead: 'rotate' | 'lowestClub'
 }
 
 export const DEFAULT_HEARTS_OPTIONS: HeartsOptions = {
@@ -45,6 +50,7 @@ export const DEFAULT_HEARTS_OPTIONS: HeartsOptions = {
   passing: true,
   shootTheMoon: 'others',
   jackOfDiamonds: false,
+  firstLead: 'rotate',
 }
 
 export type HeartsDeck = 'standard52' | 'piquet32'
@@ -217,7 +223,7 @@ export function playableCards(state: HeartsState, player: PlayerId): SuitedCard[
   if (state.phase !== 'playing' || state.turn !== player) return []
 
   if (state.trick.length === 0) {
-    if (state.tricksPlayed === 0) {
+    if (state.tricksPlayed === 0 && state.options.firstLead !== 'rotate') {
       const start = lowestClub(hand)
       return start ? [start] : [...hand]
     }
@@ -247,8 +253,17 @@ const SUIT_ORDER: Readonly<Record<Suit, number>> = { clubs: 0, diamonds: 1, spad
 export const sortHand = (cards: readonly SuitedCard[]) =>
   [...cards].sort((a, b) => SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit] || highValue(a) - highValue(b))
 
-/** Whoever holds the lowest dealt club (the pot holds at most two cards). */
-function holderOfStartCard(hands: HeartsState['hands'], order: readonly PlayerId[]) {
+/**
+ * Who leads the first trick of a hand: in turn clockwise, or whoever holds the lowest dealt club
+ * (the pot holds at most two cards).
+ */
+export function firstLeader(
+  hands: HeartsState['hands'],
+  order: readonly PlayerId[],
+  handNumber: number,
+  options: HeartsOptions,
+): PlayerId {
+  if (options.firstLead === 'rotate') return order[handNumber % order.length]!
   const start = lowestClub(order.flatMap((p) => hands[p]!))
   return order.find((p) => hands[p]!.some((c) => c === start)) ?? order[0]!
 }
@@ -278,7 +293,11 @@ function startHand(
     taken: emptyRecord<SuitedCard[]>(state.order, () => []),
   } as HeartsState
   return direction === 'none'
-    ? { ...base, phase: 'playing', turn: holderOfStartCard(hands, state.order) }
+    ? {
+        ...base,
+        phase: 'playing',
+        turn: firstLeader(hands, state.order, handNumber, state.options),
+      }
     : { ...base, phase: 'passing', turn: state.order[0]! }
 }
 
@@ -377,6 +396,17 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       ],
     },
     {
+      type: 'choice',
+      key: 'firstLead',
+      label: 'Wer spielt jede Hand aus',
+      description:
+        'Reihum: jede Hand beginnt der nächste Spieler im Uhrzeigersinn mit einer beliebigen Karte. Sonst beginnt, wer die niedrigste Kreuz hat.',
+      choices: [
+        { value: 'rotate', label: 'Reihum' },
+        { value: 'lowestClub', label: 'Niedrigste Kreuz' },
+      ],
+    },
+    {
       type: 'boolean',
       key: 'jackOfDiamonds',
       label: 'Karo-Bube −10',
@@ -465,7 +495,7 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
         received,
         passes,
         phase: 'playing',
-        turn: holderOfStartCard(hands, state.order),
+        turn: firstLeader(hands, state.order, state.handNumber, state.options),
         events: [...events, { type: 'exchanged', direction }],
       }
     }
