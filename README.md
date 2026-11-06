@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Gin Rummy**, **Canasta**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Gin Rummy**, **Canasta**, **Texas Hold'em**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -21,7 +21,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 Traditional card games that are easy to learn but offer plenty of strategic depth.
 
-- [ ] Poker (Texas Hold'em)
+- [x] Poker (Texas Hold'em) – no-limit for 2–9 players with play chips, blinds (rising by half every ten hands, optional), minimum raise, side pots and split pots, showdown with hand names, play until one player has all chips or for 30/60 hands, quick bet sizes (min, ½ pot, pot, all-in) and a slider, three AI levels
 - [x] Blackjack – chips over 5/10/20 rounds, double, split, 3:2 blackjacks, one or six decks, optional dealer hit on soft 17, basic-strategy hint
 - [x] Solitaire – draw one or three, tap to auto-move, drag whole runs, hint button, auto-finish, dead-end hint, give up
 - [x] Spider Solitaire – one, two or four suits, finished runs are put away automatically
@@ -73,7 +73,7 @@ Play against computer-controlled opponents with different strategies and difficu
 - [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, 5000 rounds, penalty points per round): beginner 27.7, intermediate 17.3, expert 14.9 – the expert uses every joker when building melds, counts cards, avoids feeding the next player and plays its next turns ahead with sampled draws, weighing the penalty in hand by a measured model of how fast opponents go out (about 6 ms per move). In Gin Rummy (head to head against the intermediate level, 2000 hands): beginner wins 40 % (−4.8 points per hand), expert 51 % (+0.9) – here too the expert is only slightly ahead. In Canasta (partnerships against an intermediate pair, per hand): beginners win 4 % of the hands (−1264 points), intermediate 53 % (+36), experts 55 % (+99).
+Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, 5000 rounds, penalty points per round): beginner 27.7, intermediate 17.3, expert 14.9 – the expert uses every joker when building melds, counts cards, avoids feeding the next player and plays its next turns ahead with sampled draws, weighing the penalty in hand by a measured model of how fast opponents go out (about 6 ms per move). In Gin Rummy (head to head against the intermediate level, 2000 hands): beginner wins 40 % (−4.8 points per hand), expert 51 % (+0.9) – here too the expert is only slightly ahead. In Canasta (partnerships against an intermediate pair, per hand): beginners win 4 % of the hands (−1264 points), intermediate 53 % (+36), experts 55 % (+99). In Texas Hold'em (six players, 30 hands, 1000 chips, against five intermediates): beginner −574 chips per game, expert +257 – Monte-Carlo equity against narrowed ranges after raises, value bets by the pot, push-or-fold when short.
 
 ---
 
@@ -204,6 +204,7 @@ src
 │   ├── romme/
 │   ├── gin-rummy/
 │   ├── canasta/
+│   ├── texas-holdem/
 │   ├── durak/
 │   ├── euchre/
 │   ├── klondike/  (shown as "Solitär")
@@ -300,7 +301,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé, Gin Rummy, Canasta ✓; next: Cribbage, then Texas Hold'em |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé, Gin Rummy, Canasta, Texas Hold'em ✓; next: Cribbage |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

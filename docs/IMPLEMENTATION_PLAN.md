@@ -253,7 +253,19 @@ interface AiAgent<State, Action> {
      (Experte hält Paare für den Stapel zurück, wirft defensiv ab). Gemessen zu viert gegen ein
      fortgeschrittenes Paar: Anfänger gewinnen 4 % der Hände (−1264 Punkte), Fortgeschrittene 53 %
      (+36), Experten 55 % (+99)
-6. Texas Hold'em Poker
+6. Texas Hold'em Poker ✅
+   - **M27 – Texas Hold'em ✅:** No Limit für 2–9 Spieler mit Spielchips (1000/2000/5000), Blinds
+     10/20 mit wanderndem Dealer-Button (heads-up setzt der Dealer den Small Blind und spricht vor
+     dem Flop zuerst), optional alle zehn Hände um die Hälfte steigend; Mindesterhöhung (unvoll-
+     ständige All-in-Erhöhungen öffnen nicht neu), Neben- und geteilte Pots (übriger Chip an den
+     ersten Gewinner links vom Button), Showdown mit direkter 7-Karten-Bewertung, Spielende wenn
+     einer alle Chips hat, der Mensch ausscheidet oder nach 30/60 Händen; Tisch mit Board, Pot,
+     eigener Hand, Schnellbeträgen (Min, ½ Pot, Pot, All-in) und Schieberegler, Übersicht nach
+     jeder Hand; KI in drei Stufen über Monte-Carlo-Equity (Anfänger geht zu oft mit, Fortge-
+     schritten vergleicht Equity und Pot-Odds, Experte rechnet nach Erhöhungen mit stärkeren
+     Händen, setzt nach Pot-Größe, blufft selten, spielt kurz gestapelt Push-or-Fold). Gemessen
+     zu sechst, 30 Hände, gegen fünf Fortgeschrittene: Anfänger −574 Chips pro Partie, Experte
+     +257; heads-up Experte +369
 
 ### Zwischenschritt – Lücken geschlossen ✅
 

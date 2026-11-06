@@ -24,7 +24,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     name: "Texas Hold'em",
     category: 'classic',
     description: 'Poker mit zwei verdeckten und fünf offenen Karten.',
-    players: { min: 2, max: 9 },
+    players: { min: 2, max: 9, default: 6 },
   },
   {
     id: 'blackjack',

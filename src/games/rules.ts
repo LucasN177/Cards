@@ -25,4 +25,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     romme: lazy(() => import('./romme/RommeRules')),
     'gin-rummy': lazy(() => import('./gin-rummy/GinRummyRules')),
     canasta: lazy(() => import('./canasta/CanastaRules')),
+    'texas-holdem': lazy(() => import('./texas-holdem/HoldemRules')),
   }
