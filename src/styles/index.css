@@ -87,6 +87,9 @@
   html.table-open body {
     overflow: hidden;
     overscroll-behavior: none;
+    /* Phones paint the page background behind the home indicator and browser toolbars,
+       outside the fixed table; felt there instead of a white strip at the bottom. */
+    background-color: var(--felt);
   }
 }
 
