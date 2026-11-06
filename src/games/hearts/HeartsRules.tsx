@@ -34,19 +34,19 @@ export default function HeartsRules({ options }: RulesProps) {
           </li>
           <li>
             Es herrscht <strong>Bedienpflicht</strong>: Wer die ausgespielte Farbe hat, muss sie
-            legen. Wer sie nicht hat, darf eine beliebige Karte abwerfen.
+            legen. Wer sie nicht hat, darf eine beliebige Karte abwerfen – mit einer Ausnahme:
+          </li>
+          <li>
+            <strong>Pik-Dame-Pflicht:</strong> Wer nicht bedienen kann und die Pik-Dame auf der Hand
+            hat, muss sie abwerfen – auch schon im ersten Stich.
           </li>
           <li>
             Den Stich gewinnt die <strong>höchste Karte der ausgespielten Farbe</strong>. Trümpfe
             gibt es nicht. Wer den Stich gewinnt, spielt den nächsten aus.
           </li>
           <li>
-            Im <strong>ersten Stich</strong> dürfen keine Punktkarten (Herzen, Pik-Dame) abgeworfen
-            werden – es sei denn, man hat nichts anderes.
-          </li>
-          <li>
-            <strong>Herz ausspielen</strong> darf man erst, wenn Herz „gebrochen“ ist – also schon
-            einmal ein Herz abgeworfen wurde – oder wenn man nur noch Herzen hat.
+            <strong>Herz</strong> darf jederzeit ausgespielt und abgeworfen werden – Herz muss nicht
+            erst „gebrochen“ werden.
           </li>
         </RulesList>
       </RulesSection>
@@ -60,12 +60,14 @@ export default function HeartsRules({ options }: RulesProps) {
             </tr>
             <tr>
               <td className="py-1 pr-4">Pik-Dame</td>
-              <td className="py-1 text-right font-medium text-foreground">13 Punkte</td>
+              <td className="py-1 text-right font-medium text-foreground">
+                13 Punkte (mit 32 Karten 8)
+              </td>
             </tr>
           </tbody>
         </table>
         <p>
-          Pro Hand werden also 26 Punkte verteilt, mit 32 Karten 21. <strong>Durchmarsch:</strong>{' '}
+          Pro Hand werden also 26 Punkte verteilt, mit 32 Karten 16. <strong>Durchmarsch:</strong>{' '}
           Wer alle Herzen und die Pik-Dame bekommt, kehrt das um – je nach Einstellung bekommen alle
           anderen diese Punkte, oder sie werden ihm selbst abgezogen. Beim Spiel bis 51 Punkte zählt
           ein Durchmarsch immer 16 Punkte.

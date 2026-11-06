@@ -28,7 +28,7 @@ Traditional card games that are easy to learn but offer plenty of strategic dept
 - [x] FreeCell – run moves limited by free cells and empty piles, safe cards go to the foundations by themselves (optional)
 - [x] Mau-Mau – single games or matches over 3/5/10 rounds, with variants (7 draws two, 7 on 7, 8 skips, 9 reverses, jack wishes, jack on jack, 5–7 cards) and a full rules text in the app
 - [x] Crazy Eights – 52 cards, wild eights, draw until a card fits, optional twos/queens/aces (shares its rules engine with Mau-Mau)
-- [x] Hearts – 52 cards or 32 cards (7–Ace), passing (left, right, across, none), Durchmarsch (all penalty cards; worth 16 when playing to 51), optional jack of diamonds, play to 50/51/100 points or a single hand
+- [x] Hearts – 52 cards or 32 cards (7–Ace; queen of spades worth 8), passing (left, right, across, none), hearts may be led any time, the queen of spades must be discarded as soon as you cannot follow suit, Durchmarsch (all penalty cards; worth 16 when playing to 51), optional jack of diamonds, play to 50/51/100 points or a single hand
 - [x] Spades – two partnerships, bids 0–13 with optional nil, spades always trump and only led once broken, bags with optional 10-bag penalty, play to 250/500 or one hand, bid estimate, three AI levels
 - [x] Bridge – Chicago for four, auction with double and redouble, declarer plays the open dummy, duplicate-style scoring with vulnerability, bidding box, three AI levels
 

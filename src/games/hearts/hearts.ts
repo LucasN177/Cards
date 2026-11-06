@@ -61,7 +61,6 @@ export type HeartsEvent =
   | { readonly type: 'exchanged'; readonly direction: PassDirection }
   | { readonly type: 'played'; readonly player: PlayerId; readonly card: SuitedCard }
   | { readonly type: 'trick'; readonly winner: PlayerId; readonly points: number }
-  | { readonly type: 'heartsBroken' }
   | {
       readonly type: 'hand'
       readonly points: Readonly<Record<PlayerId, number>>
@@ -80,7 +79,6 @@ export interface HeartsState {
   readonly trick: readonly TrickCard[]
   readonly lastTrick: { readonly cards: readonly TrickCard[]; readonly winner: PlayerId } | null
   readonly turn: PlayerId
-  readonly heartsBroken: boolean
   readonly tricksPlayed: number
   /** Finished tricks of the current hand (public; used for card counting and voids). */
   readonly handTricks: readonly (readonly TrickCard[])[]
@@ -110,7 +108,6 @@ export interface HeartsView {
   readonly trick: readonly TrickCard[]
   readonly lastTrick: HeartsState['lastTrick']
   readonly turn: PlayerId
-  readonly heartsBroken: boolean
   readonly tricksPlayed: number
   /** Points taken so far in the current hand (tricks are public). */
   readonly handPoints: Readonly<Record<PlayerId, number>>
@@ -141,17 +138,20 @@ export const isStartCard = (card: SuitedCard, deck: HeartsDeck) =>
 
 export const handSizeOf = (deck: HeartsDeck) => (deck === 'piquet32' ? 8 : 13)
 
-/** All penalty points in the deck: 26 with 52 cards, 21 with 32 (eight hearts). */
-export const totalPenalty = (deck: HeartsDeck) => handSizeOf(deck) + 13
+/** Value of the queen of spades: 13 with 52 cards, 8 with 32. */
+export const queenPenalty = (deck: HeartsDeck) => (deck === 'piquet32' ? 8 : 13)
+
+/** All penalty points in the deck: 26 with 52 cards, 16 with 32 (eight hearts + 8). */
+export const totalPenalty = (deck: HeartsDeck) => handSizeOf(deck) + queenPenalty(deck)
 
 /** What a Durchmarsch is worth: 16 when playing to 51, otherwise all penalty points. */
 export const durchmarschPoints = (options: HeartsOptions) =>
   options.targetScore === 51 ? 16 : totalPenalty(options.deck)
 
-/** Penalty points of a card (hearts 1, queen of spades 13). */
-export function cardPenalty(card: SuitedCard): number {
+/** Penalty points of a card (hearts 1, queen of spades 13 – or 8 with 32 cards). */
+export function cardPenalty(card: SuitedCard, deck: HeartsDeck = 'standard52'): number {
   if (card.suit === 'hearts') return 1
-  return isQueenOfSpades(card) ? 13 : 0
+  return isQueenOfSpades(card) ? queenPenalty(deck) : 0
 }
 
 const DIRECTIONS: readonly PassDirection[] = ['left', 'right', 'across', 'none']
@@ -176,29 +176,26 @@ export function trickWinner(trick: readonly TrickCard[]): PlayerId {
   ).player
 }
 
-export const trickPoints = (cards: readonly SuitedCard[]) =>
-  cards.reduce((sum, card) => sum + cardPenalty(card), 0)
+export const trickPoints = (cards: readonly SuitedCard[], deck: HeartsDeck = 'standard52') =>
+  cards.reduce((sum, card) => sum + cardPenalty(card, deck), 0)
 
-/** Cards `player` may play now. */
+/**
+ * Cards `player` may play now. Hearts may be led and discarded at any time (no "breaking").
+ * Whoever cannot follow suit and holds the queen of spades must discard her.
+ */
 export function playableCards(state: HeartsState, player: PlayerId): SuitedCard[] {
   const hand = state.hands[player] ?? []
   if (state.phase !== 'playing' || state.turn !== player) return []
-  const firstTrick = state.tricksPlayed === 0
 
   if (state.trick.length === 0) {
-    if (firstTrick) return hand.filter((c) => isStartCard(c, state.options.deck))
-    const nonHearts = hand.filter((c) => c.suit !== 'hearts')
-    return state.heartsBroken || nonHearts.length === 0 ? [...hand] : nonHearts
+    if (state.tricksPlayed === 0) return hand.filter((c) => isStartCard(c, state.options.deck))
+    return [...hand]
   }
   const led = state.trick[0]!.card.suit
   const following = hand.filter((c) => c.suit === led)
   if (following.length > 0) return following
-  if (firstTrick) {
-    // No points in the first trick – unless the hand holds nothing else.
-    const clean = hand.filter((c) => cardPenalty(c) === 0)
-    if (clean.length > 0) return clean
-  }
-  return [...hand]
+  const queen = hand.filter(isQueenOfSpades)
+  return queen.length > 0 ? queen : [...hand]
 }
 
 function dealHand(order: readonly PlayerId[], rngState: RngState, deck: HeartsDeck) {
@@ -242,7 +239,6 @@ function startHand(
     received: emptyRecord<SuitedCard[]>(state.order, () => []),
     trick: [],
     lastTrick: null,
-    heartsBroken: false,
     tricksPlayed: 0,
     handTricks: [],
     taken: emptyRecord<SuitedCard[]>(state.order, () => []),
@@ -255,7 +251,7 @@ function startHand(
 function scoreHand(state: HeartsState): HeartsState {
   const points = emptyRecord(state.order, () => 0)
   for (const player of state.order) {
-    points[player] = trickPoints(state.taken[player]!)
+    points[player] = trickPoints(state.taken[player]!, state.options.deck)
   }
   const all = totalPenalty(state.options.deck)
   const moon = state.order.find((p) => points[p] === all) ?? null
@@ -331,7 +327,7 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       key: 'shootTheMoon',
       label: 'Durchmarsch (alle Strafkarten)',
       description:
-        'Wer alle Herzen und die Pik-Dame bekommt: 26 Punkte, mit 32 Karten 21 – beim Spiel bis 51 immer 16.',
+        'Wer alle Herzen und die Pik-Dame bekommt: 26 Punkte, mit 32 Karten 16 – beim Spiel bis 51 immer 16.',
       choices: [
         { value: 'others', label: '… gibt allen anderen die Punkte' },
         { value: 'self', label: '… bekommt sie selbst abgezogen' },
@@ -353,7 +349,6 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
         received: emptyRecord<SuitedCard[]>(order, () => []),
         lastTrick: null,
         trick: [],
-        heartsBroken: false,
         tricksPlayed: 0,
         handTricks: [],
         taken: emptyRecord<SuitedCard[]>(order, () => []),
@@ -437,25 +432,19 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
     const trick = [...state.trick, { player, card }]
     const hands = { ...state.hands, [player]: hand.filter((c) => c !== card) }
     const events: HeartsEvent[] = [{ type: 'played', player, card }]
-    let heartsBroken = state.heartsBroken
-    if (!heartsBroken && card.suit === 'hearts') {
-      heartsBroken = true
-      events.push({ type: 'heartsBroken' })
-    }
 
     if (trick.length < state.order.length) {
-      return { ...state, hands, trick, heartsBroken, turn: nextPlayer(state.order, player), events }
+      return { ...state, hands, trick, turn: nextPlayer(state.order, player), events }
     }
 
     const winner = trickWinner(trick)
     const cards = trick.map((t) => t.card)
-    events.push({ type: 'trick', winner, points: trickPoints(cards) })
+    events.push({ type: 'trick', winner, points: trickPoints(cards, state.options.deck) })
     const next: HeartsState = {
       ...state,
       hands,
       trick: [],
       lastTrick: { cards: trick, winner },
-      heartsBroken,
       tricksPlayed: state.tricksPlayed + 1,
       handTricks: [...state.handTricks, trick],
       taken: { ...state.taken, [winner]: [...state.taken[winner]!, ...cards] },
@@ -482,9 +471,10 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       trick: state.trick,
       lastTrick: state.lastTrick,
       turn: state.turn,
-      heartsBroken: state.heartsBroken,
       tricksPlayed: state.tricksPlayed,
-      handPoints: Object.fromEntries(state.order.map((p) => [p, trickPoints(state.taken[p]!)])),
+      handPoints: Object.fromEntries(
+        state.order.map((p) => [p, trickPoints(state.taken[p]!, state.options.deck)]),
+      ),
       played,
       handTricks: state.handTricks,
       voids: computeVoids(state),

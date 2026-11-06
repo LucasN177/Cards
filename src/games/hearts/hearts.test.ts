@@ -24,7 +24,6 @@ function playing(spec: {
   trick?: [string, string][]
   turn?: string
   tricksPlayed?: number
-  heartsBroken?: boolean
   taken?: Record<string, string>
   options?: Partial<HeartsOptions>
 }): HeartsState {
@@ -39,7 +38,6 @@ function playing(spec: {
     trick: (spec.trick ?? []).map(([player, code]) => ({ player, card: cards(code)[0]! })),
     lastTrick: null,
     turn: spec.turn ?? 'a',
-    heartsBroken: spec.heartsBroken ?? false,
     tricksPlayed: spec.tricksPlayed ?? 1,
     handTricks: [],
     taken: Object.fromEntries(order.map((p) => [p, cards(spec.taken?.[p] ?? '')])),
@@ -118,37 +116,40 @@ describe('playing', () => {
     expect(ids(playableCards(state, 'b'))).toEqual(['5C', 'KC'])
   })
 
-  it('allows no points in the first trick unless there is nothing else', () => {
+  it('allows discarding hearts in the first trick', () => {
     const state = playing({
+      hands: { b: '3H 8D' },
+      trick: [['a', '2C']],
+      turn: 'b',
+      tricksPlayed: 0,
+    })
+    expect(ids(playableCards(state, 'b'))).toEqual(['3H', '8D'])
+  })
+
+  it('forces the queen of spades whenever the player cannot follow suit', () => {
+    const state = playing({ hands: { b: '3H QS 8D' }, trick: [['a', '5C']], turn: 'b' })
+    expect(ids(playableCards(state, 'b'))).toEqual(['QS'])
+    const firstTrick = playing({
       hands: { b: '3H QS 8D' },
       trick: [['a', '2C']],
       turn: 'b',
       tricksPlayed: 0,
     })
-    expect(ids(playableCards(state, 'b'))).toEqual(['8D'])
-    const onlyPoints = playing({
-      hands: { b: '3H QS' },
-      trick: [['a', '2C']],
-      turn: 'b',
-      tricksPlayed: 0,
-    })
-    expect(ids(playableCards(onlyPoints, 'b'))).toEqual(['3H', 'QS'])
+    expect(ids(playableCards(firstTrick, 'b'))).toEqual(['QS'])
+    // Following suit still comes first, also in spades.
+    const spades = playing({ hands: { b: 'QS 4S 8D' }, trick: [['a', '5S']], turn: 'b' })
+    expect(ids(playableCards(spades, 'b'))).toEqual(['QS', '4S'])
   })
 
-  it('cannot lead hearts before they are broken (unless holding only hearts)', () => {
-    expect(ids(playableCards(playing({ hands: { a: '3H 5C' } }), 'a'))).toEqual(['5C'])
-    expect(ids(playableCards(playing({ hands: { a: '3H 5C' }, heartsBroken: true }), 'a'))).toEqual(
-      ['3H', '5C'],
-    )
-    expect(ids(playableCards(playing({ hands: { a: '3H 9H' } }), 'a'))).toEqual(['3H', '9H'])
+  it('lets hearts be led at any time', () => {
+    expect(ids(playableCards(playing({ hands: { a: '3H 5C' } }), 'a'))).toEqual(['3H', '5C'])
   })
 
-  it('gives the trick to the highest card of the led suit and breaks hearts', () => {
+  it('gives the trick to the highest card of the led suit', () => {
     let state = playing({ hands: { a: '9C 2D', b: 'KD 4D', c: '3H 5S', d: 'JC 7D' } })
     state = rules.applyAction(state, 'a', { type: 'play', cardId: '9C' })
     state = rules.applyAction(state, 'b', { type: 'play', cardId: 'KD' })
     state = rules.applyAction(state, 'c', { type: 'play', cardId: '3H' })
-    expect(state.heartsBroken).toBe(true)
     state = rules.applyAction(state, 'd', { type: 'play', cardId: 'JC' })
     expect(state.lastTrick?.winner).toBe('d')
     expect(state.turn).toBe('d')
@@ -334,12 +335,16 @@ describe('32 cards and the Durchmarsch at 51', () => {
   }
   const shortHearts = '7H 8H 9H 10H JH QH KH AH'
 
-  it('ends the hand after eight tricks; a Durchmarsch is worth 21', () => {
+  it('counts the queen of spades as 8 with 32 cards', () => {
+    expect(finishShortHand({ a: '7H', b: 'QS' }).handResults[0]).toEqual({ a: 1, b: 8, c: 0, d: 0 })
+  })
+
+  it('ends the hand after eight tricks; a Durchmarsch is worth 16', () => {
     expect(finishShortHand({ a: `${shortHearts} QS` }).handResults[0]).toEqual({
       a: 0,
-      b: 21,
-      c: 21,
-      d: 21,
+      b: 16,
+      c: 16,
+      d: 16,
     })
   })
 
@@ -369,7 +374,7 @@ describe('32 cards and the Durchmarsch at 51', () => {
       })
       expect(session.state.phase).toBe('over')
       for (const hand of session.state.handResults)
-        expect([21, 48]).toContain(order.reduce((sum, p) => sum + hand[p]!, 0))
+        expect([16, 48]).toContain(order.reduce((sum, p) => sum + hand[p]!, 0))
     }
   })
 })

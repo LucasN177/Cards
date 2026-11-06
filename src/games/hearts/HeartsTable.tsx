@@ -161,7 +161,12 @@ export default function HeartsTable({
   } else prompt = `${nameOf(view.turn)} ist am Zug …`
 
   const lastWinner = showingLast ? view.lastTrick!.winner : null
-  const lastPoints = showingLast ? trickPoints(view.lastTrick!.cards.map((t) => t.card)) : 0
+  const lastPoints = showingLast
+    ? trickPoints(
+        view.lastTrick!.cards.map((t) => t.card),
+        view.options.deck,
+      )
+    : 0
 
   return (
     <>
@@ -222,7 +227,6 @@ export default function HeartsTable({
               <span className="text-white/80">
                 {' '}
                 · Du: {view.handPoints[humanId]} · Σ {view.scores[humanId]}
-                {!view.heartsBroken && view.phase === 'playing' && ' · Herz noch nicht gebrochen'}
               </span>
             </p>
             {view.received.length > 0 && (

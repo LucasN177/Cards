@@ -79,7 +79,10 @@ export function heuristicPlay(view: HeartsView, plays: readonly Play[]): Play {
   const winning = view.trick
     .filter((t) => t.card.suit === led)
     .reduce((best, t) => (highValue(t.card) > highValue(best.card) ? t : best))
-  const pointsOnTable = trickPoints(view.trick.map((t) => t.card))
+  const pointsOnTable = trickPoints(
+    view.trick.map((t) => t.card),
+    view.options.deck,
+  )
   const last = view.trick.length === view.order.length - 1
 
   if (!following) {
@@ -183,7 +186,6 @@ export function determinize(view: HeartsView, self: PlayerId, rng: Rng): HeartsS
     trick: view.trick,
     lastTrick: view.lastTrick,
     turn: self,
-    heartsBroken: view.heartsBroken,
     tricksPlayed: view.tricksPlayed,
     handTricks: view.handTricks,
     taken,
@@ -207,7 +209,10 @@ function rollout(state: HeartsState, self: PlayerId): number {
     const plays = heartsRules.legalActions(current, player) as Play[]
     current = heartsRules.applyAction(current, player, heuristicPlay(view, plays))
   }
-  return current.handResults.at(-1)?.[self] ?? trickPoints(current.taken[self] ?? [])
+  return (
+    current.handResults.at(-1)?.[self] ??
+    trickPoints(current.taken[self] ?? [], current.options.deck)
+  )
 }
 
 function createExpertAgent(budget = 480): AiAgent<HeartsView, HeartsAction> {
@@ -228,7 +233,7 @@ function createExpertAgent(budget = 480): AiAgent<HeartsView, HeartsAction> {
         }
         // Tie-break towards the cheaper card in penalty terms.
         const card = view.hand.find((c) => c.id === play.cardId)!
-        const average = total / perMove + cardPenalty(card) / 1000
+        const average = total / perMove + cardPenalty(card, view.options.deck) / 1000
         if (average < bestPoints) {
           best = play
           bestPoints = average
