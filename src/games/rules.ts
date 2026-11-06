@@ -23,4 +23,5 @@ export const GAME_RULES: Readonly<Record<string, LazyExoticComponent<ComponentTy
     schafkopf: lazy(() => import('./schafkopf/SchafkopfRules')),
     bridge: lazy(() => import('./bridge/BridgeRules')),
     romme: lazy(() => import('./romme/RommeRules')),
+    'gin-rummy': lazy(() => import('./gin-rummy/GinRummyRules')),
   }

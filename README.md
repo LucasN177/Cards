@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Gin Rummy**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -49,7 +49,7 @@ Popular card games with regional rules and variations.
 
 Games that focus on tactics, planning and decision-making.
 
-- [ ] Gin Rummy
+- [x] Gin Rummy – two players, knock with up to 10 deadwood, laying off, gin (+25), big gin (+31), undercut (+25), void hand at two stock cards, play to 100/250 or a single hand with game, box and shutout bonuses, optional Oklahoma (upcard sets the knock limit, spades double), hand arranged into melds automatically, three AI levels
 - [ ] Cribbage
 - [x] Euchre – two partnerships, 24 cards, right and left bower, two bidding rounds, dealer picks up, stick the dealer, going alone, march and euchre scoring, play to 5 or 10, three AI levels
 - [x] President / Asshole – 3–7 players, singles to quads, passing sits out the trick, titles from President to Bettler, card exchange from round 2, 3/5/10 rounds, three AI levels
@@ -73,7 +73,7 @@ Play against computer-controlled opponents with different strategies and difficu
 - [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, penalty points per round): beginner 24.2, intermediate 15.6, expert 14.8 – the expert counts cards and avoids feeding the next player, but is only slightly stronger so far.
+Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, penalty points per round): beginner 24.2, intermediate 15.6, expert 14.8 – the expert counts cards and avoids feeding the next player, but is only slightly stronger so far. In Gin Rummy (head to head against the intermediate level, 2000 hands): beginner wins 40 % (−4.8 points per hand), expert 51 % (+0.9) – here too the expert is only slightly ahead.
 
 ---
 
@@ -202,6 +202,7 @@ src
 │   ├── skat/
 │   ├── president/
 │   ├── romme/
+│   ├── gin-rummy/
 │   ├── durak/
 │   ├── euchre/
 │   ├── klondike/  (shown as "Solitär")
@@ -298,7 +299,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé ✓; next: Gin Rummy, Canasta, Cribbage, then Texas Hold'em |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé, Gin Rummy ✓; next: Canasta, Cribbage, then Texas Hold'em |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

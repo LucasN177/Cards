@@ -14,6 +14,7 @@ import { euchreGame } from './euchre'
 import { spadesGame } from './spades'
 import { presidentGame } from './president'
 import { sechsundsechzigGame } from './sechsundsechzig'
+import { ginRummyGame } from './gin-rummy'
 import { rommeGame } from './romme'
 import { schafkopfGame } from './schafkopf'
 import { schwimmenGame } from './schwimmen'
@@ -41,6 +42,7 @@ const GAMES = [
   schafkopfGame,
   bridgeGame,
   rommeGame,
+  ginRummyGame,
 ]
 
 /** Registers all playable games. Imported once at app start. */

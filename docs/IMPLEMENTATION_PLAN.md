@@ -222,6 +222,16 @@ interface AiAgent<State, Action> {
      ab, wenn jemand fast fertig ist. Gemessen (gegen zwei Fortgeschrittene, Strafpunkte pro
      Runde): Anfänger 24,2, Fortgeschritten 15,6, Experte 14,8 – der Experte ist nur knapp
      stärker; Rollouts (Determinization) brachten hier keinen Gewinn
+   - **M25 – Gin Rummy ✅:** zwei Spieler, 52 Karten, je zehn; erste Ablagekarte (Nicht-Geber,
+     dann Geber, sonst Stapel), Ass immer niedrig, Klopfen mit höchstens 10 Totholz, Gegner legt
+     an (nicht bei Gin), Gin +25, Big Gin +31 (abschaltbar), Unterschneiden +25, Hand zählt nicht
+     bei zwei Karten im Stapel, Gewinner gibt; Partie bis 100/250 oder eine Hand, Spiel-, Linien-
+     und Shutout-Bonus (abschaltbar), Oklahoma (Ablagekarte als Klopfgrenze, Pik doppelt);
+     exakte Meld-Suche für Totholz und Anlegen (auch Ketten); Hand automatisch nach Kombinationen
+     sortiert, Klopf-Knopf zeigt das Totholz, Handübersicht mit beiden Händen; KI in drei Stufen
+     (Experte zählt Karten und wirft defensiv ab). Gemessen gegen Fortgeschritten (2000 Hände):
+     Anfänger 40 % Siege (−4,8 Punkte pro Hand), Experte 51 % (+0,9); späteres Klopfen,
+     Vorausschau auf den nächsten Zug und stärkere Defensive brachten keinen messbaren Gewinn
 6. Texas Hold'em Poker
 
 ### Zwischenschritt – Lücken geschlossen ✅
