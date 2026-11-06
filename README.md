@@ -86,6 +86,7 @@ Every game brings its own AI through a common `AiAgent` interface. Computer oppo
 - [x] Drag-and-drop card interactions
 - [x] Responsive layouts for desktop, tablet and mobile – portrait and landscape; in Mau-Mau the first tap lifts a card and the second plays it, in solitaire a tap makes the best move
 - [x] Configurable game speed
+- [x] Abandon a running game (✕ in the table bar, with confirmation) – it is neither saved nor counted in the statistics; the arrow keeps it for later
 - [ ] Undo and replay where game rules allow it – undo ✓, replays planned
 - [ ] Game tutorials and rule explanations – rule explanations ✓ (own page and in-game), tutorials planned
 - [ ] Practice mode

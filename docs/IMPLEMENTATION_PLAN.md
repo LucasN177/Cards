@@ -122,7 +122,8 @@ interface AiAgent<State, Action> {
   `summarize`, z. B. gespielte/gezogene Karten bei Mau-Mau)
 - Laufende Partie wird nach jedem Zug in `localStorage` gesichert (Seed + Zugliste) und beim
   Öffnen per Replay fortgesetzt; nicht abspielbare Stände werden verworfen. „Partie fortsetzen“
-  im Setup, „Läuft“-Badge im Katalog
+  im Setup, „Läuft“-Badge im Katalog. „Partie abbrechen“ (✕ in der Tisch-Leiste, mit Rückfrage)
+  verwirft die laufende Partie: Spielstand gelöscht, keine Statistik, zurück zum Setup des Spiels
 - Statistik-Seite: Kennzahlen (Partien, Siegquote, längste/aktuelle Serie, Spielzeit), je Spiel
   Durchschnitte, Bestwerte, schnellster Sieg, Ergebnisse nach Gegnerstärke, Spieldetails, Verlauf
 - Nicht aufgezeichnet werden abgebrochene Partien; Mehrrunden-Matches folgen mit dem ersten

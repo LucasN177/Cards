@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpen, RotateCcw, Undo2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, RotateCcw, Undo2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface TableBarProps {
@@ -8,10 +8,20 @@ interface TableBarProps {
   readonly onUndo: () => void
   readonly onRestart: () => void
   readonly onRules: () => void
+  /** Abandons the game (only while it is running). */
+  readonly onAbort?: () => void
 }
 
 /** Compact top bar with 44px touch targets; respects the notch/status bar. */
-export function TableBar({ title, canUndo, onExit, onUndo, onRestart, onRules }: TableBarProps) {
+export function TableBar({
+  title,
+  canUndo,
+  onExit,
+  onUndo,
+  onRestart,
+  onRules,
+  onAbort,
+}: TableBarProps) {
   const iconButton = 'size-11 text-white hover:bg-white/15 hover:text-white'
   return (
     <header className="app-bar flex items-center gap-1 bg-black/20 pt-safe px-safe">
@@ -53,6 +63,17 @@ export function TableBar({ title, canUndo, onExit, onUndo, onRestart, onRules }:
       >
         <RotateCcw className="size-5" />
       </Button>
+      {onAbort && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={iconButton}
+          onClick={onAbort}
+          aria-label="Partie abbrechen"
+        >
+          <X className="size-5" />
+        </Button>
+      )}
     </header>
   )
 }

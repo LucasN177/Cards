@@ -7,9 +7,16 @@ import { RulesSheet } from '@/features/rules/RulesPage'
 import { useGameSounds } from '@/features/sound/useGameSounds'
 import { buildMatchRecord } from '@/features/stats/record'
 import { GAME_TABLES } from '@/games/tables'
-import { type Match, persistMatch, seriesResults, useMatch } from '@/stores/matchStore'
+import {
+  isMatchFinished,
+  type Match,
+  persistMatch,
+  seriesResults,
+  useMatch,
+} from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
 import { useStats } from '@/stores/statsStore'
+import { AbortDialog } from './AbortDialog'
 import { GameOverDialog } from './GameOverDialog'
 import { HUMAN_ID, useAiTurns, useSessionVersion } from './session'
 import { TableBar } from './TableBar'
@@ -53,11 +60,12 @@ function Table({ match, title }: { match: Match; title: string }) {
   const { session } = match
   const version = useSessionVersion(session)
   const [rulesOpen, setRulesOpen] = useState(false)
+  const [abortOpen, setAbortOpen] = useState(false)
   // A game may hold the opponents back, e.g. while it shows a summary between two hands.
   const [bodyPaused, setBodyPaused] = useState(false)
   const [showResumed, setShowResumed] = useState(match.resumed)
-  // Opponents wait while the rules are open.
-  useAiTurns(session, rulesOpen || bodyPaused)
+  // Opponents wait while the rules or the abort question are open.
+  useAiTurns(session, rulesOpen || abortOpen || bodyPaused)
   useWakeLock()
   useGameSounds(session, HUMAN_ID, match.resumed)
   const navigate = useNavigate()
@@ -87,6 +95,19 @@ function Table({ match, title }: { match: Match; title: string }) {
 
   const exit = () => void navigate('/')
   const restart = () => start(session.game)
+  // Abandon: leave first, then drop the match once the table is gone – otherwise the table
+  // would notice the missing match and start a new game right away.
+  const aborting = useRef(false)
+  const abort = () => {
+    aborting.current = true
+    void navigate(`/games/${session.game.id}`)
+  }
+  useEffect(
+    () => () => {
+      if (aborting.current) useMatch.getState().abort()
+    },
+    [],
+  )
 
   return (
     // "user" follows the OS reduce-motion setting; the in-app switch turns motion off entirely.
@@ -103,6 +124,7 @@ function Table({ match, title }: { match: Match; title: string }) {
           onUndo={() => session.undo()}
           onRestart={restart}
           onRules={() => setRulesOpen(true)}
+          onAbort={isMatchFinished(match) ? undefined : () => setAbortOpen(true)}
         />
         <AnimatePresence>
           {showResumed && (
@@ -136,6 +158,7 @@ function Table({ match, title }: { match: Match; title: string }) {
             onClose={() => setRulesOpen(false)}
           />
         )}
+        {abortOpen && <AbortDialog onAbort={abort} onCancel={() => setAbortOpen(false)} />}
         {session.result && (
           <GameOverDialog
             series={{ rounds: match.series.rounds, results: seriesResults(match) }}

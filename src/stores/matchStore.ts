@@ -30,6 +30,8 @@ interface MatchStore {
   resume(game: AnyGameDefinition): Match | null
   /** Starts the next round of the series once the current round is over. */
   nextRound(): Match | null
+  /** Abandons the running game: it is not saved and not counted in the statistics. */
+  abort(): void
   clear(): void
 }
 
@@ -148,6 +150,12 @@ export const useMatch = create<MatchStore>()((set, get) => ({
     persistMatch(match)
     set({ match })
     return match
+  },
+
+  abort() {
+    const current = get().match
+    if (current) deleteSave(current.gameId)
+    set({ match: null })
   },
 
   clear: () => set({ match: null }),
