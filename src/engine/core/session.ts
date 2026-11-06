@@ -148,6 +148,13 @@ export class GameSession<S, A, O extends object, V> {
     return this.game.legalActions(this.currentState, player)
   }
 
+  /** Why `action` is not allowed for `player` right now, or null – e.g. to explain a button. */
+  whyNot(player: PlayerId, action: A): string | null {
+    if (this.isOver) return 'Das Spiel ist vorbei'
+    if (this.currentPlayer !== player) return 'Du bist nicht am Zug'
+    return this.validate(player, action)
+  }
+
   // --- Moves -----------------------------------------------------------------------------------
 
   /** Validates and applies a move. Throws a `GameError` subclass if it is not allowed. */

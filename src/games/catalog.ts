@@ -136,7 +136,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     name: 'Canasta',
     category: 'german',
     description: 'Partnerspiel mit Meldungen und Canastas aus sieben Karten.',
-    players: { min: 2, max: 4 },
+    players: { min: 2, max: 4, default: 4 },
   },
   {
     id: 'gin-rummy',

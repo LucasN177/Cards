@@ -11,7 +11,7 @@ From traditional trick-taking games to strategic card games, Cards aims to provi
 
 ▶️ **Play it:** [lucasn177.github.io/Cards](https://lucasn177.github.io/Cards/) – installable as an app (PWA) on phone and desktop, works offline.
 
-> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Gin Rummy**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> 🚧 **Work in Progress** – The engine, the app shell, the card table, statistics and the first games (**Mau-Mau**, **Crazy Eights**, **Hearts**, **Blackjack**, **Schwimmen**, **President**, **Durak**, **Spades**, **Sechsundsechzig**, **Euchre**, **Wizard**, **Skat**, **Doppelkopf**, **Schafkopf**, **Bridge**, **Rommé**, **Gin Rummy**, **Canasta**, **Solitaire**, **FreeCell** and **Spider**) are done. More games follow step by step. Checked items below are implemented; everything else is the roadmap. The detailed plan lives in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -43,7 +43,7 @@ Popular card games with regional rules and variations.
 - [x] Schwimmen (31) – 2–9 players, swap one or all cards, pass (new middle when everybody passes), knock, 31 ends the round ("Feuer"), 2–4 lives plus swimming, three AI levels
 - [x] Durak – 2–6 players, 36 cards, trump from the stock, attack and defend card by card, throw-ins by everybody or only the attacker, at most six attack cards, refill to six, three AI levels
 - [x] Rommé – 2–6 players, 110 cards with jokers, sets and runs, first lay-out of 40 (or 30) points, laying off, Hand-Rommé doubles, penalty points over 1/3/5 rounds, staging groups before laying out, three AI levels
-- [ ] Canasta
+- [x] Canasta – classic rules for 2–4 players (four: partnerships), 108 cards, jokers and twos wild, red threes as bonus cards, black threes block the pile, first-meld minimum by score (15/50/90/120), taking the (frozen) pile, natural and mixed canastas, going out (concealed), play to 5000/2500 or a single hand, optional "pile always frozen", hints explaining what a meld still needs, three AI levels
 
 ### 🏆 Competitive & Strategic Games
 
@@ -73,7 +73,7 @@ Play against computer-controlled opponents with different strategies and difficu
 - [x] Configurable AI opponents – number of opponents and difficulty per game
 - [ ] Optional AI explanations for decisions
 
-Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, penalty points per round): beginner 24.2, intermediate 15.6, expert 14.8 – the expert counts cards and avoids feeding the next player, but is only slightly stronger so far. In Gin Rummy (head to head against the intermediate level, 2000 hands): beginner wins 40 % (−4.8 points per hand), expert 51 % (+0.9) – here too the expert is only slightly ahead.
+Every game brings its own AI through a common `AiAgent` interface. Computer opponents think in a **web worker**, so even the expert's simulations never make animations or taps stutter; the game stays fully deterministic (the worker continues the session's random sequence) and falls back to the main thread where workers are unavailable. Measured in Mau-Mau (two players, hundreds of games): beginner wins 36 % and expert ~59 % against the intermediate level. In Hearts (against three intermediate players, fair share 6.5 points per hand): beginner 13.8, intermediate 7.4, expert 5.9 points per hand. In Rommé (against two intermediate players, penalty points per round): beginner 24.2, intermediate 15.6, expert 14.8 – the expert counts cards and avoids feeding the next player, but is only slightly stronger so far. In Gin Rummy (head to head against the intermediate level, 2000 hands): beginner wins 40 % (−4.8 points per hand), expert 51 % (+0.9) – here too the expert is only slightly ahead. In Canasta (partnerships against an intermediate pair, per hand): beginners win 4 % of the hands (−1264 points), intermediate 53 % (+36), experts 55 % (+99).
 
 ---
 
@@ -203,6 +203,7 @@ src
 │   ├── president/
 │   ├── romme/
 │   ├── gin-rummy/
+│   ├── canasta/
 │   ├── durak/
 │   ├── euchre/
 │   ├── klondike/  (shown as "Solitär")
@@ -299,7 +300,7 @@ The main objectives are:
 | 2 – UI (app shell, settings, theme, card table, animations) | ✅ |
 | 3 – First game: Mau-Mau with AI and rules | ✅ |
 | 4 – Statistics, match history and saved games | ✅ |
-| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé, Gin Rummy ✓; next: Canasta, Cribbage, then Texas Hold'em |
+| 5 – More games | in progress – Solitaire, FreeCell, Spider, Hearts, Crazy Eights, Blackjack, Schwimmen, President, Durak, Spades, Sechsundsechzig, Euchre, Wizard, Skat, Doppelkopf, Schafkopf, Bridge, Rommé, Gin Rummy, Canasta ✓; next: Cribbage, then Texas Hold'em |
 | 6 – Advanced AI | in progress – web worker ✓, next: personalities, adaptive difficulty, explanations |
 | 7 – Polish (tutorials, sound, achievements, local multiplayer) | planned |
 

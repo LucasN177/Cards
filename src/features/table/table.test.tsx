@@ -71,7 +71,7 @@ describe('table', () => {
   })
 
   it('shows a not-found page for games that cannot be played', async () => {
-    renderRoute('/play/canasta')
+    renderRoute('/play/cribbage')
     expect(await screen.findByText('Dieses Spiel ist nicht spielbar.')).toBeInTheDocument()
   })
 })
