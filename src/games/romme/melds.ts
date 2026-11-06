@@ -190,3 +190,76 @@ export function bestMelds(hand: readonly Card[], by: 'points' | 'cards' = 'point
   search(0, new Set(), [], 0)
   return best.melds
 }
+
+/**
+ * Like `bestMelds` (by points), but jokers are pooled: every joker in hand can be used, a meld
+ * may hold two of them (never more jokers than real cards), and sets of three get a joker as
+ * the fourth card. Used by the expert, which so reaches the first lay-out sooner.
+ */
+export function bestMeldsWithJokers(hand: readonly Card[]): Card[][] {
+  const plain = hand.filter((c): c is Extract<Card, { kind: 'suited' }> => c.kind === 'suited')
+  const jokers = hand.filter(isJoker)
+  const J = jokers.length
+  if (J === 0) return bestMelds(hand)
+  const cands: { plain: Card[]; jokers: number; value: number }[] = []
+  const add = (cards: Card[], j: number) => {
+    if (j > cards.length || cards.length + j < 3) return
+    const meld = analyzeMeld([...cards, ...jokers.slice(0, j)])
+    if (meld) cands.push({ plain: cards, jokers: j, value: meldValue(meld) })
+  }
+  for (const rank of RANKS) {
+    const bySuit = new Map<Suit, Card>()
+    for (const c of plain) if (c.rank === rank && !bySuit.has(c.suit)) bySuit.set(c.suit, c)
+    const group = [...bySuit.values()]
+    for (let mask = 1; mask < 1 << group.length; mask++) {
+      const sub = group.filter((_, i) => mask & (1 << i))
+      for (let j = 0; j <= Math.min(2, J) && sub.length + j <= 4; j++) add(sub, j)
+    }
+  }
+  for (const suit of SUITS) {
+    const byNum = new Map<number, Card>()
+    for (const c of plain.filter((x) => x.suit === suit)) {
+      const n = rankNumber(c.rank)
+      if (!byNum.has(n)) byNum.set(n, c)
+      if (n === 14 && !byNum.has(1)) byNum.set(1, c)
+    }
+    for (let start = 1; start <= 12; start++) {
+      for (let budget = 0; budget <= Math.min(2, J); budget++) {
+        const run: Card[] = []
+        let used = 0
+        for (let v = start; v <= 14; v++) {
+          const card = byNum.get(v)
+          if (card && !run.includes(card)) run.push(card)
+          else if (used < budget) used++
+          else break
+          if (run.length + used >= 3 && used === budget) add([...run], used)
+        }
+      }
+    }
+  }
+  cands.sort((a, b) => b.value - a.value)
+  let best: { picks: number[]; value: number } = { picks: [], value: 0 }
+  let steps = 0
+  const picks: number[] = []
+  const search = (i: number, usedIds: Set<string>, usedJ: number, value: number) => {
+    if (value > best.value) best = { picks: [...picks], value }
+    if (++steps > 20_000) return
+    for (let k = i; k < cands.length; k++) {
+      const c = cands[k]!
+      if (usedJ + c.jokers > J || c.plain.some((x) => usedIds.has(x.id))) continue
+      for (const x of c.plain) usedIds.add(x.id)
+      picks.push(k)
+      search(k + 1, usedIds, usedJ + c.jokers, value + c.value)
+      picks.pop()
+      for (const x of c.plain) usedIds.delete(x.id)
+    }
+  }
+  search(0, new Set(), 0, 0)
+  let next = 0
+  return best.picks.map((k) => {
+    const c = cands[k]!
+    const melds = [...c.plain, ...jokers.slice(next, next + c.jokers)]
+    next += c.jokers
+    return melds
+  })
+}

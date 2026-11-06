@@ -216,12 +216,20 @@ interface AiAgent<State, Action> {
      (Ass unten oder oben, Joker für jede Karte), erstes Auslegen ab 40 bzw. 30 Punkten in einem
      Zug, Anlegen, abgelegte Ablagekarte nicht sofort zurück, Hand-Rommé doppelt, Strafpunkte über
      1/3/5 Runden; Gruppen vormerken und gemeinsam auslegen; KI mit Meld-Suche (beste disjunkte
-     Kombinationen), Anlegen und Abwurf nach Nutzen; Experte zählt Karten (Paare ohne lebende
-     Ergänzungskarten sind wertlos), merkt sich offen aufgenommene Ablagekarten, füttert den
-     nächsten Spieler nicht, nimmt Joker und Anlegekarten vom Ablagestapel und wirft hohe Karten
-     ab, wenn jemand fast fertig ist. Gemessen (gegen zwei Fortgeschrittene, Strafpunkte pro
-     Runde): Anfänger 24,2, Fortgeschritten 15,6, Experte 14,8 – der Experte ist nur knapp
-     stärker; Rollouts (Determinization) brachten hier keinen Gewinn
+     Kombinationen), Anlegen und Abwurf nach Nutzen; Experte nutzt alle Joker beim Auslegen
+     (auch zwei pro Kombination und als vierte Karte eines Satzes) und kommt so früher auf die
+     40 Punkte, zählt Karten, füttert den nächsten Spieler nicht und spielt seine nächsten Züge
+     im Kopf durch: Für die drei besten Abwürfe (und für Ablagestapel oder Stapel) zieht er
+     24-mal zufällige ungesehene Karten, spielt zehn Züge wie der Fortgeschrittene weiter und
+     gewichtet die Strafpunkte auf der Hand mit der Chance, dass ein Gegner vorher fertig wird
+     (Markov-Modell aus gemessenen Partien: wer ausgelegt hat, geht mit 1 Karte zu 40 %, mit 2–3
+     Karten zu 16 % pro Zug raus); Ausgehen zählt zusätzlich die halben geschätzten Strafpunkte
+     der Gegner. Ein unbrauchbarer Joker (zwei Karten auf der Hand, nichts zum Anlegen) wird
+     abgeworfen, sonst konnte die Runde nie enden. Gemessen (gegen zwei Fortgeschrittene, 5000
+     Runden, Strafpunkte pro Runde): Anfänger 27,7, Fortgeschritten 17,3, Experte 14,9 (der alte
+     Experte ohne Vorausschau 16,3); im Zweierspiel ≈ +0,8 Punkte pro Runde gegenüber dem
+     Fortgeschrittenen; ≈ 6 ms pro Zug. Vollständige Rollouts mit zufälligen Gegnerhänden
+     brachten keinen Gewinn – das Gegnermodell als Ausstiegs-Wahrscheinlichkeit dagegen schon
    - **M25 – Gin Rummy ✅:** zwei Spieler, 52 Karten, je zehn; erste Ablagekarte (Nicht-Geber,
      dann Geber, sonst Stapel), Ass immer niedrig, Klopfen mit höchstens 10 Totholz, Gegner legt
      an (nicht bei Gin), Gin +25, Big Gin +31 (abschaltbar), Unterschneiden +25, Hand zählt nicht

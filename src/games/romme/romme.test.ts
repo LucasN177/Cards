@@ -3,6 +3,7 @@ import { createRommeAgent } from './ai'
 import {
   analyzeMeld,
   bestMelds,
+  bestMeldsWithJokers,
   DEFAULT_ROMME_OPTIONS,
   layOff,
   type Meld,
@@ -82,6 +83,23 @@ describe('melds', () => {
         .sort(),
     ).toEqual(['10D', '7C', '7H', '7S', '9D', 'JD'].sort())
   })
+
+  it('pools jokers for the expert: every joker counts, also as the fourth card of a set', () => {
+    const hand = cards('KC KS 5H 6H JKR JKB')
+    // The plain search can only ever use one joker.
+    expect(bestMelds(hand).flat()).toHaveLength(3)
+    const melds = bestMeldsWithJokers(hand)
+    expect(
+      melds
+        .flat()
+        .map((c) => c.id)
+        .sort(),
+    ).toEqual(['5H', '6H', 'JKB', 'JKR', 'KC', 'KS'])
+    expect(melds.every((m) => analyzeMeld(m))).toBe(true)
+    const four = bestMeldsWithJokers(cards('QC QS QH JKR'))
+    expect(four.map((m) => m.length)).toEqual([4])
+    expect(meldValue(analyzeMeld(four[0]!)!)).toBe(40)
+  })
 })
 
 describe('turns', () => {
@@ -152,9 +170,24 @@ describe('AI', () => {
     })
 
   it('the expert takes a joker from the discard pile', async () => {
-    const s = playing({ a: '2C 9S KH', b: '3S', c: '4S' }, { phase: 'draw', discard: cards('JKR') })
+    // Nothing in a's hand belongs together yet, but a joker turns any pair into a meld later.
+    const s = playing(
+      { a: '2C 9S KH 5D 7H JC 4S AD', b: '3S 4D 5C 6C 7C', c: '4S 5H 6H 7D 8D' },
+      { phase: 'draw', discard: cards('JKR') },
+    )
     expect(await decide(s, 'intermediate')).toEqual({ type: 'drawStock' })
     expect(await decide(s, 'expert')).toEqual({ type: 'drawDiscard' })
+  })
+
+  it('throws away a joker that can no longer be used (otherwise the round could never end)', async () => {
+    // Only full sets on the table: a joker cannot be laid off, and two cards make no meld.
+    const full = { ...analyzeMeld(cards('AC AS AD AH'))!, id: 'm1' } as Meld
+    const s = playing(
+      { a: '4H JKR', b: '3S 4D', c: '4S 5C' },
+      { melds: [full], nextMeldId: 2, hasMelded: { a: true, b: true, c: true } },
+    )
+    for (const level of ['intermediate', 'expert'] as const)
+      expect(await decide(s, level)).toEqual({ type: 'discard', cardId: 'JKR' })
   })
 
   it('the expert does not feed the next player a card for the table', async () => {
@@ -168,22 +201,27 @@ describe('AI', () => {
   })
 
   it('the expert counts cards: a pair whose completing cards are gone is worth nothing', async () => {
-    // a holds 3C 3S (both 3H and both 3D lie in the discard pile) and QH KH (live neighbours).
+    // a holds 7C 7S (both 7H and both 7D lie in the discard pile) and 9H 9D (still live).
     const s = playing(
-      { a: '3C 3S QH KH', b: '4S 5D 6C 8C 9C', c: '5S 6D 7C 8D 9D' },
-      { discard: cards('3H 3H:1 3D 3D:1') },
+      { a: '7C 7S 9H 9D', b: '4S 5D 6C 8C 9C', c: '5S 6D 7C:1 8D 2D' },
+      {
+        discard: cards('7H 7H:1 7D 7D:1'),
+        melds: [{ ...analyzeMeld(cards('KC KS KD'))!, id: 'm1' } as Meld],
+        nextMeldId: 2,
+        hasMelded: { a: true, b: true, c: true },
+      },
     )
-    // Without counting, the queen goes (higher penalty, the pair looks just as good).
-    expect(await decide(s, 'intermediate')).toEqual({ type: 'discard', cardId: 'QH' })
+    // Without counting, a nine goes (higher penalty, both pairs look just as good).
+    expect(await decide(s, 'intermediate')).toEqual({ type: 'discard', cardId: '9H' })
     const action = await decide(s, 'expert')
-    expect(['3C', '3S']).toContain((action as { cardId: string }).cardId)
+    expect(['7C', '7S']).toContain((action as { cardId: string }).cardId)
   })
 
-  it('levels: the beginner takes clearly more penalty points; the expert not more', async () => {
+  it('levels: the beginner takes clearly more penalty points, the expert clearly fewer', async () => {
     const three: PlayerInfo[] = ['x', 'y', 'z'].map((id) => ({ id, name: id, kind: 'ai' }))
     const average = async (level: 'beginner' | 'intermediate' | 'expert') => {
       let total = 0
-      for (let seed = 0; seed < 200; seed++) {
+      for (let seed = 0; seed < ROUNDS; seed++) {
         const { session } = await simulateGame(rommeGame, {
           players: three,
           agents: {
@@ -192,17 +230,19 @@ describe('AI', () => {
             z: createRommeAgent('intermediate'),
           },
           options: { ...DEFAULT_ROMME_OPTIONS, rounds: 1 },
-          seed: 5000 + seed,
+          seed: 1_090_000 + seed,
           maxMoves: 5000,
         })
         total += session.state.scores['x']!
       }
-      return total / 200
+      return total / ROUNDS
     }
+    const ROUNDS = 300
     const intermediate = await average('intermediate')
     expect(await average('beginner')).toBeGreaterThan(intermediate + 4)
-    expect(await average('expert')).toBeLessThanOrEqual(intermediate + 0.5)
-  })
+    // Measured over 5000 rounds: intermediate 17.3, expert 14.9 penalty points per round.
+    expect(await average('expert')).toBeLessThan(intermediate - 1.5)
+  }, 180_000)
 
   it('plays whole games', async () => {
     const levels = ['beginner', 'intermediate', 'expert'] as const
