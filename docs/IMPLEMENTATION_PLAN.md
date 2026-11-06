@@ -212,6 +212,16 @@ interface AiAgent<State, Action> {
      Seeger-Fabian; 3/6/12 Spiele; Anzeige des Mindestwerts je Spiel beim Ansagen; KI in drei
      Stufen (Reizgrenze aus Blattstärke, Drücken über alle Kartenpaare, Stichspiel mit Schmieren)
 5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage
+   - **M24 – Rommé ✅:** 2–6 Spieler, 110 Karten (zwei Blätter, sechs Joker), Sätze und Folgen
+     (Ass unten oder oben, Joker für jede Karte), erstes Auslegen ab 40 bzw. 30 Punkten in einem
+     Zug, Anlegen, abgelegte Ablagekarte nicht sofort zurück, Hand-Rommé doppelt, Strafpunkte über
+     1/3/5 Runden; Gruppen vormerken und gemeinsam auslegen; KI mit Meld-Suche (beste disjunkte
+     Kombinationen), Anlegen und Abwurf nach Nutzen; Experte zählt Karten (Paare ohne lebende
+     Ergänzungskarten sind wertlos), merkt sich offen aufgenommene Ablagekarten, füttert den
+     nächsten Spieler nicht, nimmt Joker und Anlegekarten vom Ablagestapel und wirft hohe Karten
+     ab, wenn jemand fast fertig ist. Gemessen (gegen zwei Fortgeschrittene, Strafpunkte pro
+     Runde): Anfänger 24,2, Fortgeschritten 15,6, Experte 14,8 – der Experte ist nur knapp
+     stärker; Rollouts (Determinization) brachten hier keinen Gewinn
 6. Texas Hold'em Poker
 
 ### Zwischenschritt – Lücken geschlossen ✅
