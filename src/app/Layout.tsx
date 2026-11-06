@@ -42,9 +42,12 @@ export function Layout() {
           </nav>
         </div>
       </header>
-      <main className="app-bar-body mx-auto w-full max-w-6xl flex-1 pt-6 px-safe pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pt-10">
+      <main className="app-bar-body mx-auto w-full max-w-6xl flex-1 pt-6 px-safe pb-6 sm:pt-10">
         <Outlet />
       </main>
+      <footer className="mx-auto w-full max-w-6xl border-t py-4 px-safe pb-[max(1rem,env(safe-area-inset-bottom))] text-center text-xs text-muted-foreground">
+        Cards v{__APP_VERSION__} · by Lucas Nagelsmann
+      </footer>
       <PwaUpdatePrompt />
     </div>
   )

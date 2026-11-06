@@ -8,6 +8,7 @@ import {
   type HeartsOptions,
   type HeartsState,
   type HeartsView,
+  passDirection,
   passTargetOf,
   playableCards,
   trickPoints,
@@ -31,6 +32,7 @@ function playing(spec: {
   return {
     order,
     hands: Object.fromEntries(order.map((p) => [p, cards(spec.hands[p] ?? '')])),
+    pot: [],
     phase: 'playing',
     handNumber: 0,
     passes: Object.fromEntries(order.map((p) => [p, null])),
@@ -375,6 +377,94 @@ describe('32 cards and the Durchmarsch at 51', () => {
       expect(session.state.phase).toBe('over')
       for (const hand of session.state.handResults)
         expect([16, 48]).toContain(order.reduce((sum, p) => sum + hand[p]!, 0))
+    }
+  })
+})
+
+describe('three and five players with a pot', () => {
+  const seats = (n: number) => ['a', 'b', 'c', 'd', 'e'].slice(0, n)
+  const infos = (ids: string[]): PlayerInfo[] => ids.map((id) => ({ id, name: id, kind: 'ai' }))
+
+  it.each([
+    [3, 'standard52', 17, 1],
+    [5, 'standard52', 10, 2],
+    [3, 'piquet32', 10, 2],
+    [5, 'piquet32', 6, 2],
+  ] as const)('%i players with %s: %i cards each, %i in the pot', (n, deck, size, pot) => {
+    const state = rules.setup({
+      players: infos(seats(n)),
+      options: { ...DEFAULT_HEARTS_OPTIONS, deck },
+      seed: 5,
+    })
+    expect(seats(n).map((p) => state.hands[p]!.length)).toEqual(seats(n).map(() => size))
+    expect(state.pot).toHaveLength(pot)
+    expect(rules.playerView(state, 'a').potSize).toBe(pot)
+  })
+
+  it('passes left, right, then not at all without four players', () => {
+    const options = { ...DEFAULT_HEARTS_OPTIONS }
+    expect([0, 1, 2, 3].map((h) => passDirection(h, options, 3))).toEqual([
+      'left',
+      'right',
+      'none',
+      'left',
+    ])
+  })
+
+  it('opens with the lowest dealt club when the club 2 lies in the pot', () => {
+    const three = ['a', 'b', 'c']
+    const state = rules.setup({
+      players: infos(three),
+      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false },
+      seed: 1,
+    })
+    const forced: HeartsState = {
+      ...state,
+      hands: { a: cards('3C 4H'), b: cards('5C 6H'), c: cards('7C 8H') },
+      pot: cards('2C'),
+      turn: 'a',
+    }
+    expect(ids(playableCards(forced, 'a'))).toEqual(['3C'])
+  })
+
+  it('gives the pot to the winner of the last trick', () => {
+    const three = ['a', 'b', 'c']
+    const base = rules.setup({
+      players: infos(three),
+      options: { ...DEFAULT_HEARTS_OPTIONS, passing: false, targetScore: 0 },
+      seed: 1,
+    })
+    let state: HeartsState = {
+      ...base,
+      hands: { a: cards('2D'), b: cards('3D'), c: cards('AD') },
+      pot: cards('QS'),
+      tricksPlayed: 16,
+      turn: 'a',
+    }
+    for (const p of three)
+      state = rules.applyAction(state, p, { type: 'play', cardId: state.hands[p]![0]!.id })
+    expect(state.handResults[0]).toEqual({ a: 0, b: 0, c: 13 })
+    const hand = state.events.find((e) => e.type === 'hand')
+    expect(hand).toMatchObject({ pot: { winner: 'c' } })
+  })
+
+  it.each([3, 5])('plays whole games with %i players', { timeout: 60_000 }, async (n) => {
+    const ids = seats(n)
+    for (let seed = 0; seed < 5; seed++) {
+      const { session } = await simulateGame(heartsGame, {
+        players: infos(ids),
+        agents: Object.fromEntries(
+          ids.map((p, i) => [
+            p,
+            createHeartsAgent(i === 0 && seed < 2 ? 'expert' : 'intermediate'),
+          ]),
+        ),
+        options: { targetScore: 50 },
+        seed,
+      })
+      expect(session.state.phase).toBe('over')
+      for (const hand of session.state.handResults)
+        expect([26, 26 * (n - 1)]).toContain(ids.reduce((sum, p) => sum + hand[p]!, 0))
     }
   })
 })

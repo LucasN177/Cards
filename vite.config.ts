@@ -4,12 +4,15 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import packageJson from './package.json' with { type: 'json' }
 
 // https://vite.dev/config/
 export default defineConfig({
   // GitHub Pages serves the app from https://<user>.github.io/Cards/
   base: process.env.GITHUB_PAGES ? '/Cards/' : '/',
   define: {
+    // Shown in the app footer; bump "version" in package.json with every release.
+    __APP_VERSION__: JSON.stringify(packageJson.version),
     // Always inline the flag (also when unset) so test-game code is dropped from normal builds.
     'import.meta.env.VITE_ENABLE_TEST_GAMES': JSON.stringify(
       process.env.VITE_ENABLE_TEST_GAMES ?? '',

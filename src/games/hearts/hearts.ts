@@ -1,5 +1,6 @@
 /**
- * Hearts rules for four players. One game consists of several hands and ends when a player
+ * Hearts rules for three to five players. With three or five players the cards that do not
+ * divide evenly go face down into a pot that the winner of the last trick takes. One game consists of several hands and ends when a player
  * reaches the target score (or after a single hand). Pure and deterministic.
  */
 import {
@@ -24,7 +25,10 @@ export interface HeartsOptions {
   readonly targetScore: 0 | 50 | 51 | 100
   /** 52 cards (2–Ace, 13 each) or 32 cards (7–Ace, 8 each). */
   readonly deck: HeartsDeck
-  /** Pass three cards before each hand (left, right, across, then no passing). */
+  /**
+   * Pass three cards before each hand: left, right, across, then no passing (with three or five
+   * players: left, right, none).
+   */
   readonly passing: boolean
   /**
    * Taking all hearts and the queen of spades ("Durchmarsch"): the points go to everybody else,
@@ -65,11 +69,15 @@ export type HeartsEvent =
       readonly type: 'hand'
       readonly points: Readonly<Record<PlayerId, number>>
       readonly moon: PlayerId | null
+      /** The pot (revealed) and who took it with the last trick; null without a pot. */
+      readonly pot: { readonly cards: readonly SuitedCard[]; readonly winner: PlayerId } | null
     }
 
 export interface HeartsState {
   readonly order: readonly PlayerId[]
   readonly hands: Readonly<Record<PlayerId, readonly SuitedCard[]>>
+  /** Left-over cards of the deal, face down; the winner of the last trick takes them. */
+  readonly pot: readonly SuitedCard[]
   readonly phase: 'passing' | 'playing' | 'over'
   /** 0-based number of the current hand. */
   readonly handNumber: number
@@ -98,6 +106,8 @@ export interface HeartsView {
   readonly order: readonly PlayerId[]
   readonly hand: readonly SuitedCard[]
   readonly handSizes: Readonly<Record<PlayerId, number>>
+  /** Number of face-down cards in the pot (3 or 5 players). */
+  readonly potSize: number
   readonly phase: HeartsState['phase']
   readonly handNumber: number
   readonly passDirection: PassDirection
@@ -132,17 +142,26 @@ export const highValue = (card: SuitedCard) => RANKS.indexOf(card.rank) + 2
 
 export const isQueenOfSpades = (card: SuitedCard) => card.suit === 'spades' && card.rank === 'Q'
 const isJackOfDiamonds = (card: SuitedCard) => card.suit === 'diamonds' && card.rank === 'J'
-/** The card that opens the first trick: the lowest club of the deck. */
-export const isStartCard = (card: SuitedCard, deck: HeartsDeck) =>
-  card.suit === 'clubs' && card.rank === (deck === 'piquet32' ? '7' : '2')
 
-export const handSizeOf = (deck: HeartsDeck) => (deck === 'piquet32' ? 8 : 13)
+/** Cards per suit: 13 with 52 cards, 8 with 32. */
+export const suitSizeOf = (deck: HeartsDeck) => (deck === 'piquet32' ? 8 : 13)
+
+/** Cards each player gets; the rest goes into the pot. */
+export const handSizeOf = (deck: HeartsDeck, players = 4) =>
+  Math.floor((suitSizeOf(deck) * 4) / players)
+
+/** Lowest club among `cards` – the lowest dealt club opens the first trick. */
+export function lowestClub(cards: readonly SuitedCard[]): SuitedCard | undefined {
+  let low: SuitedCard | undefined
+  for (const c of cards) if (c.suit === 'clubs' && (!low || highValue(c) < highValue(low))) low = c
+  return low
+}
 
 /** Value of the queen of spades: 13 with 52 cards, 8 with 32. */
 export const queenPenalty = (deck: HeartsDeck) => (deck === 'piquet32' ? 8 : 13)
 
 /** All penalty points in the deck: 26 with 52 cards, 16 with 32 (eight hearts + 8). */
-export const totalPenalty = (deck: HeartsDeck) => handSizeOf(deck) + queenPenalty(deck)
+export const totalPenalty = (deck: HeartsDeck) => suitSizeOf(deck) + queenPenalty(deck)
 
 /** What a Durchmarsch is worth: 16 when playing to 51, otherwise all penalty points. */
 export const durchmarschPoints = (options: HeartsOptions) =>
@@ -156,8 +175,18 @@ export function cardPenalty(card: SuitedCard, deck: HeartsDeck = 'standard52'): 
 
 const DIRECTIONS: readonly PassDirection[] = ['left', 'right', 'across', 'none']
 
-export const passDirection = (handNumber: number, options: HeartsOptions): PassDirection =>
-  options.passing ? DIRECTIONS[handNumber % 4]! : 'none'
+/** Without four players there is no "across". */
+const ODD_DIRECTIONS: readonly PassDirection[] = ['left', 'right', 'none']
+
+export function passDirection(
+  handNumber: number,
+  options: HeartsOptions,
+  players = 4,
+): PassDirection {
+  if (!options.passing) return 'none'
+  const cycle = players === 4 ? DIRECTIONS : ODD_DIRECTIONS
+  return cycle[handNumber % cycle.length]!
+}
 
 /** Player order is clockwise; "left" is the next player. */
 export function passTargetOf(
@@ -188,7 +217,10 @@ export function playableCards(state: HeartsState, player: PlayerId): SuitedCard[
   if (state.phase !== 'playing' || state.turn !== player) return []
 
   if (state.trick.length === 0) {
-    if (state.tricksPlayed === 0) return hand.filter((c) => isStartCard(c, state.options.deck))
+    if (state.tricksPlayed === 0) {
+      const start = lowestClub(hand)
+      return start ? [start] : [...hand]
+    }
     return [...hand]
   }
   const led = state.trick[0]!.card.suit
@@ -201,9 +233,10 @@ export function playableCards(state: HeartsState, player: PlayerId): SuitedCard[
 function dealHand(order: readonly PlayerId[], rngState: RngState, deck: HeartsDeck) {
   const rng = new Rng(rngState)
   const cards = rng.shuffle(createDeck(deck)) as SuitedCard[]
-  const { hands } = deal(cards, order.length, handSizeOf(deck))
+  const { hands, rest } = deal(cards, order.length, handSizeOf(deck, order.length))
   return {
     hands: Object.fromEntries(order.map((id, i) => [id, sortHand(hands[i]!)])),
+    pot: rest,
     rng: rng.state,
   }
 }
@@ -214,25 +247,26 @@ const SUIT_ORDER: Readonly<Record<Suit, number>> = { clubs: 0, diamonds: 1, spad
 export const sortHand = (cards: readonly SuitedCard[]) =>
   [...cards].sort((a, b) => SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit] || highValue(a) - highValue(b))
 
-const holderOfStartCard = (
-  hands: HeartsState['hands'],
-  order: readonly PlayerId[],
-  deck: HeartsDeck,
-) => order.find((p) => hands[p]!.some((c) => isStartCard(c, deck)))!
+/** Whoever holds the lowest dealt club (the pot holds at most two cards). */
+function holderOfStartCard(hands: HeartsState['hands'], order: readonly PlayerId[]) {
+  const start = lowestClub(order.flatMap((p) => hands[p]!))
+  return order.find((p) => hands[p]!.some((c) => c === start)) ?? order[0]!
+}
 
 const emptyRecord = <T>(order: readonly PlayerId[], value: () => T) =>
   Object.fromEntries(order.map((p) => [p, value()])) as Record<PlayerId, T>
 
 /** Starts hand `handNumber`: deal, then passing or directly the first trick. */
 function startHand(
-  state: Omit<HeartsState, 'hands' | 'phase' | 'turn' | 'passes'> & Partial<HeartsState>,
+  state: Omit<HeartsState, 'hands' | 'pot' | 'phase' | 'turn' | 'passes'> & Partial<HeartsState>,
   handNumber: number,
 ): HeartsState {
-  const { hands, rng } = dealHand(state.order, state.rng, state.options.deck)
-  const direction = passDirection(handNumber, state.options)
+  const { hands, pot, rng } = dealHand(state.order, state.rng, state.options.deck)
+  const direction = passDirection(handNumber, state.options, state.order.length)
   const base = {
     ...state,
     hands,
+    pot,
     rng,
     handNumber,
     passes: emptyRecord(state.order, () => null),
@@ -244,11 +278,11 @@ function startHand(
     taken: emptyRecord<SuitedCard[]>(state.order, () => []),
   } as HeartsState
   return direction === 'none'
-    ? { ...base, phase: 'playing', turn: holderOfStartCard(hands, state.order, state.options.deck) }
+    ? { ...base, phase: 'playing', turn: holderOfStartCard(hands, state.order) }
     : { ...base, phase: 'passing', turn: state.order[0]! }
 }
 
-function scoreHand(state: HeartsState): HeartsState {
+function scoreHand(state: HeartsState, potWinner: PlayerId): HeartsState {
   const points = emptyRecord(state.order, () => 0)
   for (const player of state.order) {
     points[player] = trickPoints(state.taken[player]!, state.options.deck)
@@ -279,7 +313,15 @@ function scoreHand(state: HeartsState): HeartsState {
     scores,
     moons,
     handResults: [...state.handResults, points],
-    events: [...state.events, { type: 'hand', points, moon }],
+    events: [
+      ...state.events,
+      {
+        type: 'hand',
+        points,
+        moon,
+        pot: state.pot.length > 0 ? { cards: state.pot, winner: potWinner } : null,
+      },
+    ],
   }
   const target = state.options.targetScore
   const gameOver = target === 0 || state.order.some((p) => scores[p]! >= target)
@@ -292,7 +334,7 @@ function scoreHand(state: HeartsState): HeartsState {
 export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, HeartsView>({
   id: 'hearts',
   name: 'Hearts',
-  players: { min: 4, max: 4 },
+  players: { min: 3, max: 5, default: 4 },
   defaultOptions: DEFAULT_HEARTS_OPTIONS,
   optionFields: [
     {
@@ -320,14 +362,15 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       type: 'boolean',
       key: 'passing',
       label: 'Karten weitergeben',
-      description: 'Vor jeder Hand drei Karten abgeben: nach links, rechts, gegenüber, dann keine.',
+      description:
+        'Vor jeder Hand drei Karten abgeben: nach links, rechts, gegenüber, dann keine (zu dritt oder zu fünft ohne gegenüber).',
     },
     {
       type: 'choice',
       key: 'shootTheMoon',
       label: 'Durchmarsch (alle Strafkarten)',
       description:
-        'Wer alle Herzen und die Pik-Dame bekommt: 26 Punkte, mit 32 Karten 16 – beim Spiel bis 51 immer 16.',
+        'Wer alle Herzen und die Pik-Dame bekommt (auch über den Topf): 26 Punkte, mit 32 Karten 16 – beim Spiel bis 51 immer 16.',
       choices: [
         { value: 'others', label: '… gibt allen anderen die Punkte' },
         { value: 'self', label: '… bekommt sie selbst abgezogen' },
@@ -403,7 +446,7 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       if (waiting) return { ...state, passes, turn: waiting, events }
 
       // Everybody has chosen: exchange the cards.
-      const direction = passDirection(state.handNumber, state.options)
+      const direction = passDirection(state.handNumber, state.options, state.order.length)
       const hands: Record<PlayerId, SuitedCard[]> = {}
       const received: Record<PlayerId, SuitedCard[]> = {}
       for (const p of state.order) {
@@ -422,7 +465,7 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
         received,
         passes,
         phase: 'playing',
-        turn: holderOfStartCard(hands, state.order, state.options.deck),
+        turn: holderOfStartCard(hands, state.order),
         events: [...events, { type: 'exchanged', direction }],
       }
     }
@@ -438,7 +481,9 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
     }
 
     const winner = trickWinner(trick)
-    const cards = trick.map((t) => t.card)
+    const lastTrickOfHand = state.order.every((p) => hands[p]!.length === 0)
+    // The winner of the last trick also takes the pot.
+    const cards = [...trick.map((t) => t.card), ...(lastTrickOfHand ? state.pot : [])]
     events.push({ type: 'trick', winner, points: trickPoints(cards, state.options.deck) })
     const next: HeartsState = {
       ...state,
@@ -451,16 +496,17 @@ export const heartsRules = defineGame<HeartsState, HeartsAction, HeartsOptions, 
       turn: winner,
       events,
     }
-    return next.tricksPlayed === handSizeOf(state.options.deck) ? scoreHand(next) : next
+    return lastTrickOfHand ? scoreHand(next, winner) : next
   },
 
   playerView(state, player) {
-    const direction = passDirection(state.handNumber, state.options)
+    const direction = passDirection(state.handNumber, state.options, state.order.length)
     const played = [...state.handTricks.flat(), ...state.trick].map((t) => t.card)
     return {
       order: state.order,
       hand: state.hands[player] ?? [],
       handSizes: Object.fromEntries(state.order.map((p) => [p, state.hands[p]!.length])),
+      potSize: state.phase === 'over' ? 0 : state.pot.length,
       phase: state.phase,
       handNumber: state.handNumber,
       passDirection: direction,

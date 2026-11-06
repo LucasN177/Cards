@@ -178,8 +178,10 @@ interface AiAgent<State, Action> {
      angesagtem Stich, Überstiche als Bags (je 10 kosten 100, abschaltbar), Partie bis 250/500
      oder eine Hand; Schätzung fürs Ansagen; KI in drei Stufen (Experte vermeidet Bags, schützt
      Nil)
-   - **M10 – Hearts ✅:** vier Spieler, 52 oder 32 Karten (7 bis Ass, je 8), Weitergeben (links,
-     rechts, gegenüber, keine), niedrigste Kreuz beginnt, Herz jederzeit spielbar (kein Brechen),
+   - **M10 – Hearts ✅:** drei bis fünf Spieler (Standard vier; zu dritt/fünft kommen die
+     übrigen Karten verdeckt in einen Topf für den Gewinner des letzten Stichs, Weitergeben
+     ohne „gegenüber“), 52 oder 32 Karten (7 bis Ass, je 8), Weitergeben (links,
+     rechts, gegenüber, keine), niedrigste ausgeteilte Kreuz beginnt, Herz jederzeit spielbar (kein Brechen),
      Pik-Dame-Pflicht (wer nicht bedienen kann, muss sie abwerfen), Pik-Dame 13 bzw. mit 32
      Karten 8 Punkte, Durchmarsch (alle Strafpunkte – 26 bzw. 16 – für die anderen oder abgezogen; beim
      Spiel bis 51 immer 16), Karo-Bube −10 (Variante), Partie bis 50/51/100 Punkte oder eine Hand;

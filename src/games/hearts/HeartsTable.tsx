@@ -9,7 +9,7 @@ import { OpponentSeat } from '@/features/table/OpponentSeat'
 import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { DropZone, TableLayout } from '@/features/table/TableLayout'
 import { cn } from '@/lib/utils'
-import { useSettings } from '@/stores/settingsStore'
+import { type DeckStyle, useSettings } from '@/stores/settingsStore'
 import {
   type HeartsAction,
   type HeartsOptions,
@@ -28,22 +28,29 @@ const DIRECTION_LABEL: Readonly<Record<PassDirection, string>> = {
   none: '',
 }
 
-/** Where a seat's card lies in the trick, seen from the human player (bottom). */
-const TRICK_POSITION = [
-  'bottom-0 left-1/2 -translate-x-1/2',
-  'left-0 top-1/2 -translate-y-1/2',
-  'top-0 left-1/2 -translate-x-1/2',
-  'right-0 top-1/2 -translate-y-1/2',
-] as const
-const ENTER_FROM = [{ y: 60 }, { x: -60 }, { y: -60 }, { x: 60 }] as const
+/**
+ * Where a seat's card lies in the trick, seen from the human player (seat 0, bottom): the seats
+ * sit clockwise on an ellipse, so four players give bottom, left, top, right.
+ */
+function trickSlot(seat: number, players: number) {
+  const angle = Math.PI / 2 + (seat * 2 * Math.PI) / players
+  const x = Math.cos(angle)
+  const y = Math.sin(angle)
+  return {
+    style: { left: `${50 + 34 * x}%`, top: `${50 + 28 * y}%` },
+    enter: { x: Math.round(60 * x), y: Math.round(60 * y) },
+  }
+}
 
 function HandSummary({
   view,
   nameOf,
   humanId,
+  style,
   onContinue,
 }: {
   view: HeartsView
+  style: DeckStyle
   nameOf: (id: PlayerId) => string
   humanId: PlayerId
   onContinue: () => void
@@ -53,6 +60,7 @@ function HandSummary({
   const points = view.handResults.at(-1)!
   const lastEvent = [...view.events].reverse().find((e) => e.type === 'hand')
   const moon = lastEvent?.type === 'hand' ? lastEvent.moon : null
+  const pot = lastEvent?.type === 'hand' ? lastEvent.pot : null
   const rows = [...view.order].sort((a, b) => view.scores[a]! - view.scores[b]!)
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center">
@@ -70,6 +78,12 @@ function HandSummary({
             <p className="mt-1 font-medium text-yellow-600 dark:text-yellow-400">
               {moon === humanId ? 'Du hast' : `${nameOf(moon)} hat`} alle Strafkarten bekommen –
               Durchmarsch!
+            </p>
+          )}
+          {pot && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Topf ({pot.cards.map((c) => cardName(c, style)).join(', ')}):{' '}
+              {pot.winner === humanId ? 'an dich' : `an ${nameOf(pot.winner)}`}
             </p>
           )}
         </div>
@@ -156,7 +170,7 @@ export default function HeartsTable({
   else if (myTurn) {
     prompt =
       view.tricksPlayed === 0 && view.trick.length === 0
-        ? `Du beginnst mit der Kreuz ${view.options.deck === 'piquet32' ? '7' : '2'}`
+        ? `Du beginnst mit ${cardName(view.hand.find((c) => legalIds.has(c.id)) ?? view.hand[0]!, style)}`
         : 'Du bist dran'
   } else prompt = `${nameOf(view.turn)} ist am Zug …`
 
@@ -191,12 +205,13 @@ export default function HeartsTable({
             <div className="pointer-events-none relative h-[calc(var(--card-h)*2.25)] w-[calc(var(--card-w)*3.2)]">
               <AnimatePresence>
                 {shownTrick.map(({ player, card }) => {
-                  const seat = seatOf(player)
+                  const slot = trickSlot(seatOf(player), view.order.length)
                   return (
                     <motion.div
                       key={card.id}
-                      className={`absolute ${TRICK_POSITION[seat]}`}
-                      initial={player === humanId ? false : { opacity: 0, ...ENTER_FROM[seat] }}
+                      className="absolute -translate-x-1/2 -translate-y-1/2"
+                      style={slot.style}
+                      initial={player === humanId ? false : { opacity: 0, ...slot.enter }}
                       animate={{ opacity: showingLast ? 0.7 : 1, x: 0, y: 0 }}
                       exit={{ opacity: 0, scale: 0.85 }}
                     >
@@ -209,6 +224,26 @@ export default function HeartsTable({
                   )
                 })}
               </AnimatePresence>
+              {view.potSize > 0 && (
+                // Bottom left is free with three and five players (the only ones with a pot).
+                <div
+                  role="img"
+                  className="absolute bottom-0 left-0 flex flex-col items-start gap-0.5 text-[10px] text-white/80"
+                  aria-label={`Topf: ${view.potSize} verdeckte Karten`}
+                >
+                  Topf
+                  <div className="relative">
+                    {Array.from({ length: view.potSize }, (_, i) => (
+                      <PlayingCard
+                        key={i}
+                        size="xs"
+                        className={i > 0 ? 'absolute' : undefined}
+                        style={i > 0 ? { left: i * 4, top: i * -2 } : undefined}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </DropZone>
         }
@@ -265,6 +300,7 @@ export default function HeartsTable({
           view={view}
           nameOf={nameOf}
           humanId={humanId}
+          style={style}
           onContinue={() => setSeenHands(view.handResults.length)}
         />
       )}

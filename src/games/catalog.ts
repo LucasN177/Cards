@@ -14,7 +14,7 @@ export interface CatalogEntry {
   readonly name: string
   readonly category: GameCategory
   readonly description: string
-  readonly players: { readonly min: number; readonly max: number }
+  readonly players: { readonly min: number; readonly max: number; readonly default?: number }
 }
 
 /** Every game on the roadmap. An entry becomes playable once its definition is registered. */
@@ -73,7 +73,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     name: 'Hearts',
     category: 'classic',
     description: 'Stichspiel: Vermeide Herzen und die Pik-Dame.',
-    players: { min: 4, max: 4 },
+    players: { min: 3, max: 5, default: 4 },
   },
   {
     id: 'spades',

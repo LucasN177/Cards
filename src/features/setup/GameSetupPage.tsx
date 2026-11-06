@@ -41,7 +41,13 @@ export function GameSetupPage() {
   const minOpponents = Math.max(0, (game?.players.min ?? 1) - 1)
   const maxOpponents = Math.max(0, (game?.players.max ?? 1) - 1)
   const [opponents, setOpponents] = useState(() =>
-    Math.min(Math.max(saved?.opponents ?? minOpponents, minOpponents), maxOpponents),
+    Math.min(
+      Math.max(
+        saved?.opponents ?? (game?.players.default ?? game?.players.min ?? 1) - 1,
+        minOpponents,
+      ),
+      maxOpponents,
+    ),
   )
   const [difficulty, setDifficulty] = useState<Difficulty>(saved?.difficulty ?? 'beginner')
   const [rounds, setRounds] = useState(saved?.rounds ?? 1)

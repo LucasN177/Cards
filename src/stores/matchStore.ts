@@ -91,7 +91,7 @@ export const useMatch = create<MatchStore>()((set, get) => ({
     const prefs = preferences ??
       settings.games[game.id] ?? {
         ...DEFAULT_PREFERENCES,
-        opponents: Math.max(0, game.players.min - 1),
+        opponents: Math.max(0, (game.players.default ?? game.players.min) - 1),
       }
     const rounds = game.supportsSeries ? Math.max(1, prefs.rounds ?? 1) : 1
     const match = newMatch(game, prefs, { rounds, completed: [] })

@@ -17,7 +17,8 @@ export interface GameDefinition<S, A, O extends object = Record<string, never>, 
   /** Stable, URL-safe id, e.g. `mau-mau`. Used for routing, saves and statistics. */
   readonly id: string
   readonly name: string
-  readonly players: { readonly min: number; readonly max: number }
+  /** Allowed player counts; `default` is preselected in the setup (otherwise `min`). */
+  readonly players: { readonly min: number; readonly max: number; readonly default?: number }
   readonly defaultOptions: O
   /** Rule variants the player can change before a game (keys of `O`). */
   readonly optionFields?: readonly GameOptionField[]

@@ -6,22 +6,30 @@ export default function HeartsRules({ options }: RulesProps) {
     <div className="space-y-6">
       <RulesSection title="Ziel">
         <p>
-          Hearts ist ein Stichspiel für vier Spieler, bei dem du <strong>möglichst wenig</strong>{' '}
-          Punkte sammeln willst. Punkte bringen nur Herzen und die Pik-Dame. Wer am Ende die
-          wenigsten Punkte hat, gewinnt.
+          Hearts ist ein Stichspiel für drei bis fünf Spieler (klassisch vier), bei dem du{' '}
+          <strong>möglichst wenig</strong> Punkte sammeln willst. Punkte bringen nur Herzen und die
+          Pik-Dame. Wer am Ende die wenigsten Punkte hat, gewinnt.
         </p>
       </RulesSection>
 
       <RulesSection title="Karten und Weitergeben">
         <RulesList>
           <li>
-            Gespielt wird mit 52 Karten (jeder bekommt 13) oder – je nach Einstellung – mit 32
-            Karten von 7 bis Ass (jeder bekommt 8). Ass ist die höchste Karte.
+            Gespielt wird mit 52 Karten (zu viert bekommt jeder 13) oder – je nach Einstellung – mit
+            32 Karten von 7 bis Ass (zu viert je 8). Ass ist die höchste Karte.
+          </li>
+          <li>
+            Die Spielerzahl wählst du über die Anzahl der Gegner.{' '}
+            <strong>Zu dritt oder zu fünft</strong> geht das Austeilen nicht auf: Die übrigen Karten
+            (eine oder zwei) kommen verdeckt in den <strong>Topf</strong>. Wer den{' '}
+            <strong>letzten Stich</strong> gewinnt, bekommt den Topf dazu – samt aller Herzen oder
+            der Pik-Dame darin.
           </li>
           <li>
             Vor jeder Hand gibst du <strong>drei Karten</strong> weiter: in der ersten Hand nach
             links, dann nach rechts, dann zum Gegenüber, in der vierten Hand gar nicht – danach von
-            vorn. Gute Kandidaten sind die Pik-Dame, hohe Pik und hohe Herzen.
+            vorn. Zu dritt oder zu fünft entfällt „gegenüber“: links, rechts, keine. Gute Kandidaten
+            sind die Pik-Dame, hohe Pik und hohe Herzen.
           </li>
         </RulesList>
       </RulesSection>
@@ -29,8 +37,8 @@ export default function HeartsRules({ options }: RulesProps) {
       <RulesSection title="Spielablauf">
         <RulesList>
           <li>
-            Wer die <strong>niedrigste Kreuz</strong> hat (Kreuz 2, mit 32 Karten Kreuz 7), spielt
-            sie zum ersten Stich aus.
+            Wer die <strong>niedrigste Kreuz</strong> hat (Kreuz 2, mit 32 Karten Kreuz 7 – liegt
+            sie im Topf, die nächsthöhere), spielt sie zum ersten Stich aus.
           </li>
           <li>
             Es herrscht <strong>Bedienpflicht</strong>: Wer die ausgespielte Farbe hat, muss sie
@@ -68,9 +76,9 @@ export default function HeartsRules({ options }: RulesProps) {
         </table>
         <p>
           Pro Hand werden also 26 Punkte verteilt, mit 32 Karten 16. <strong>Durchmarsch:</strong>{' '}
-          Wer alle Herzen und die Pik-Dame bekommt, kehrt das um – je nach Einstellung bekommen alle
-          anderen diese Punkte, oder sie werden ihm selbst abgezogen. Beim Spiel bis 51 Punkte zählt
-          ein Durchmarsch immer 16 Punkte.
+          Wer alle Herzen und die Pik-Dame bekommt (auch über den Topf), kehrt das um – je nach
+          Einstellung bekommen alle anderen diese Punkte, oder sie werden ihm selbst abgezogen. Beim
+          Spiel bis 51 Punkte zählt ein Durchmarsch immer 16 Punkte.
         </p>
         <p>
           Gespielt werden so viele Hände, bis jemand die Zielpunktzahl erreicht (100, 51 oder 50).

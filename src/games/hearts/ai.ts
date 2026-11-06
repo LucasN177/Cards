@@ -164,13 +164,20 @@ export function determinize(view: HeartsView, self: PlayerId, rng: Rng): HeartsS
     (createDeck(view.options.deck) as SuitedCard[]).filter((c) => !known.has(c.id)),
   )
   const opponents = view.order.filter((p) => p !== self)
+  // With three or five players some unseen cards lie face down in the pot.
+  const pot: SuitedCard[] = []
   for (const card of unseen) {
     const candidates = opponents.filter(
       (p) => hands[p]!.length < view.handSizes[p]! && !view.voids[p]!.includes(card.suit),
     )
+    if (candidates.length === 0 && pot.length < view.potSize) {
+      pot.push(card)
+      continue
+    }
     const fallback = opponents.filter((p) => hands[p]!.length < view.handSizes[p]!)
     const target = (candidates.length ? candidates : fallback)[0]
     if (target) hands[target]!.push(card)
+    else pot.push(card)
   }
 
   const taken: Record<PlayerId, SuitedCard[]> = Object.fromEntries(view.order.map((p) => [p, []]))
@@ -179,6 +186,7 @@ export function determinize(view: HeartsView, self: PlayerId, rng: Rng): HeartsS
   return {
     order: view.order,
     hands,
+    pot,
     phase: 'playing',
     handNumber: view.handNumber,
     passes: Object.fromEntries(view.order.map((p) => [p, null])),
