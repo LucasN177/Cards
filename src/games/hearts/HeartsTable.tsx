@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { CardId, GameSession, PlayerId } from '@/engine'
+import { CardDecorationContext } from '@/features/cards/cardDecoration'
 import { cardName } from '@/features/cards/cardFaces'
 import { PlayingCard } from '@/features/cards/PlayingCard'
 import { Hand, LIFT_CLEARANCE } from '@/features/table/Hand'
@@ -10,6 +11,8 @@ import { type GameBodyProps, useSessionVersion } from '@/features/table/session'
 import { DropZone, TableLayout } from '@/features/table/TableLayout'
 import { cn } from '@/lib/utils'
 import { type DeckStyle, useSettings } from '@/stores/settingsStore'
+import { RunningPig } from './BlackPig'
+import { pigDecoration } from './pigDecoration'
 import {
   type HeartsAction,
   type HeartsOptions,
@@ -122,8 +125,19 @@ export default function HeartsTable({
   onPauseChange,
 }: GameBodyProps) {
   const session = anySession as unknown as HeartsSession
-  useSessionVersion(session)
+  const version = useSessionVersion(session)
   const style = useSettings((s) => s.deckStyle)
+
+  // The queen of spades was just played: the black pig runs across the table, grunting.
+  const [pigRun, setPigRun] = useState<number | null>(null)
+  const seenMoves = useRef(session.history.length)
+  useEffect(() => {
+    const moves = session.history.length
+    const added = moves > seenMoves.current
+    seenMoves.current = moves
+    const last = session.history.at(-1)?.action
+    if (added && last?.type === 'play' && last.cardId === 'QS') setPigRun(moves)
+  }, [session, version])
   const centerRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState(false)
   const [chosen, setChosen] = useState<ReadonlySet<CardId>>(new Set())
@@ -183,7 +197,7 @@ export default function HeartsTable({
     : 0
 
   return (
-    <>
+    <CardDecorationContext.Provider value={pigDecoration}>
       <TableLayout
         opponents={view.order
           .filter((p) => p !== humanId)
@@ -304,6 +318,7 @@ export default function HeartsTable({
           onContinue={() => setSeenHands(view.handResults.length)}
         />
       )}
-    </>
+      {pigRun !== null && <RunningPig key={pigRun} onDone={() => setPigRun(null)} />}
+    </CardDecorationContext.Provider>
   )
 }

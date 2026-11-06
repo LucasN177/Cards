@@ -2,6 +2,7 @@ import { type HTMLMotionProps, motion } from 'framer-motion'
 import type { Card } from '@/engine'
 import { cn } from '@/lib/utils'
 import { useSettings } from '@/stores/settingsStore'
+import { useCardDecoration } from './cardDecoration'
 import { cardName } from './cardFaces'
 import { CardBack, CardFace } from './CardFace'
 
@@ -30,14 +31,16 @@ export function PlayingCard({
   ...props
 }: PlayingCardProps) {
   const deckStyle = useSettings((s) => s.deckStyle)
+  const decorate = useCardDecoration()
   const showFace = card !== undefined && !faceDown
   const scale = SIZE_SCALE[size]
+  const decoration = showFace && decorate ? decorate(card) : null
 
   return (
     <motion.div
       role="img"
       aria-label={showFace ? cardName(card, deckStyle) : 'Verdeckte Karte'}
-      className={cn('shrink-0 rounded-[7%] shadow-md', className)}
+      className={cn('shrink-0 rounded-[7%] shadow-md', decoration && 'relative', className)}
       style={{
         width: `calc(var(--card-w, 5rem) * ${scale})`,
         height: `calc(var(--card-h, 7rem) * ${scale})`,
@@ -46,6 +49,7 @@ export function PlayingCard({
       {...props}
     >
       {showFace ? <CardFace card={card} style={deckStyle} topIndex={topIndex} /> : <CardBack />}
+      {decoration}
     </motion.div>
   )
 }

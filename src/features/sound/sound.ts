@@ -4,7 +4,16 @@ import { type SoundVolume, useSettings } from '@/stores/settingsStore'
  * Card sounds synthesized with the Web Audio API: no audio files to license, download or cache,
  * so they work offline and cost nothing on the first load.
  */
-export type SoundName = 'card' | 'draw' | 'shuffle' | 'invalid' | 'undo' | 'win' | 'lose'
+export type SoundName =
+  | 'card'
+  | 'draw'
+  | 'shuffle'
+  | 'invalid'
+  | 'undo'
+  | 'win'
+  | 'lose'
+  /** Hearts: the black pig of the queen of spades. */
+  | 'grunt'
 
 export const VOLUME: Readonly<Record<SoundVolume, number>> = { low: 0.25, medium: 0.5, high: 0.9 }
 
@@ -85,6 +94,26 @@ function tone(
   oscillator.stop(at + length + 0.02)
 }
 
+/** One pig grunt: a low, falling sawtooth through a muffling filter, with some breath. */
+function oink(ctx: AudioContext, volume: number, at: number, pitch: number, length: number) {
+  const voice = ctx.createOscillator()
+  voice.type = 'sawtooth'
+  voice.frequency.setValueAtTime(pitch, at)
+  voice.frequency.exponentialRampToValueAtTime(pitch * 0.7, at + length)
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.frequency.value = 700
+  filter.Q.value = 6
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.001, at)
+  gain.gain.exponentialRampToValueAtTime(volume * 0.6, at + 0.025)
+  gain.gain.exponentialRampToValueAtTime(0.001, at + length)
+  voice.connect(filter).connect(gain).connect(ctx.destination)
+  voice.start(at)
+  voice.stop(at + length + 0.02)
+  snap(ctx, volume * 0.35, at, length * 0.8, 450)
+}
+
 const SOUNDS: Readonly<Record<SoundName, (ctx: AudioContext, volume: number, at: number) => void>> =
   {
     card: (ctx, v, at) => snap(ctx, v, at),
@@ -99,6 +128,10 @@ const SOUNDS: Readonly<Record<SoundName, (ctx: AudioContext, volume: number, at:
     },
     win: (ctx, v, at) => {
       ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(ctx, v, at + i * 0.11, f, 0.25))
+    },
+    grunt: (ctx, v, at) => {
+      oink(ctx, v, at, 125, 0.2)
+      oink(ctx, v, at + 0.27, 105, 0.26)
     },
     lose: (ctx, v, at) => {
       ;[392, 329.63, 261.63].forEach((f, i) => tone(ctx, v, at + i * 0.16, f, 0.3, 'sine'))

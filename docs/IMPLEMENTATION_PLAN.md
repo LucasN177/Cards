@@ -188,7 +188,9 @@ interface AiAgent<State, Action> {
      KI Anfänger,
      Fortgeschritten (Heuristik), Experte (Determinization mit Fehlfarben und bekannten
      weitergegebenen Karten); Zwischenwertung nach jeder Hand (KI pausiert solange);
-     Auswahlmodus der Hand zum Weitergeben
+     Auswahlmodus der Hand zum Weitergeben; die Pik-Dame trägt ein schwarzes Schwein, das beim
+     Ausspielen grunzend über den Tisch läuft (nur in Hearts, über einen Karten-Dekorations-Kontext;
+     Grunzen per Web Audio synthetisiert)
 4. Komplexe Spiele: Skat, Doppelkopf (mit Regelsätzen), Schafkopf, Bridge ✅
    - **M23 – Bridge ✅:** Chicago mit vier Spielern (Süd/Nord gegen Ost/West), Reizung 1–7 in
      ♣ ♦ ♥ ♠ SA mit Passe, Kontra, Rekontra, Alleinspieler und Dummy (offen nach dem Ausspiel,

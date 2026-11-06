@@ -67,6 +67,13 @@ describe('sound', () => {
     expect(FakeAudioContext.created).toBe(1)
   })
 
+  it('grunts twice for the black pig in Hearts', () => {
+    playSound('grunt')
+    // Two oinks: a voice and a breath each.
+    expect(FakeAudioContext.oscillators).toBe(2)
+    expect(FakeAudioContext.sources).toBe(2)
+  })
+
   it('unlocks a suspended audio context on the first tap', () => {
     unlockAudio()
     expect(FakeAudioContext.created).toBe(1)

@@ -107,6 +107,10 @@ export default function HeartsRules({ options }: RulesProps) {
       <RulesSection title="Bedienung">
         <RulesList>
           <li>
+            Die Pik-Dame trägt ein <strong>schwarzes Schwein</strong>. Wird sie ausgespielt, läuft
+            es grunzend über den Tisch (der Ton folgt der Einstellung für Töne).
+          </li>
+          <li>
             <strong>Weitergeben:</strong> Tippe drei Karten an (sie werden angehoben) und dann auf
             „Weitergeben“. Erhaltene Karten sind danach blau umrandet.
           </li>
