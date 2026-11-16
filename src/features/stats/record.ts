@@ -1,4 +1,4 @@
-import type { PlayerId } from '@/engine'
+import { isTie, type PlayerId } from '@/engine'
 import type { AnySession } from '@/features/table/session'
 import type { MatchRecord, Outcome } from './types'
 
@@ -19,7 +19,7 @@ export function buildMatchRecord(
       .map((p) => p.id)
       .sort((a, b) => (result.scores[b] ?? 0) - (result.scores[a] ?? 0))
   const won = result.winners.includes(humanId)
-  const outcome: Outcome = won ? (result.winners.length > 1 ? 'draw' : 'win') : 'loss'
+  const outcome: Outcome = won ? (isTie(result.winners, result.teams) ? 'draw' : 'win') : 'loss'
   const ai = session.players.filter((p) => p.kind === 'ai')
 
   return {

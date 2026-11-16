@@ -445,6 +445,7 @@ export const euchreRules = defineGame<EuchreState, EuchreAction, EuchreOptions, 
       scores,
       winners: state.order.filter((p) => scores[p] === best),
       ranking,
+      teams: [0, 1].map((i) => state.order.filter((_, j) => j % 2 === i)),
       scoreLabel: 'Teampunkte',
     }
   },

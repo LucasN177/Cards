@@ -30,6 +30,8 @@ export interface GameResult {
   readonly scoreLabel?: string
   /** True when fewer points are better (penalty points). */
   readonly lowerScoreIsBetter?: boolean
+  /** Partnerships: players in one entry win together, so a team's winners are no tie. */
+  readonly teams?: readonly (readonly PlayerId[])[]
 }
 
 /** Describes a rule option so the setup screen can render it without game-specific UI code. */

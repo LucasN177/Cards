@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import {
   type GameResult,
   isSeriesOver,
+  isTie,
   type PlayerId,
   type PlayerInfo,
   seriesStandings,
@@ -27,9 +28,9 @@ interface GameOverDialogProps {
   readonly onExit: () => void
 }
 
-function headline(winners: readonly PlayerId[], humanId: PlayerId) {
+function headline(winners: readonly PlayerId[], humanId: PlayerId, teams?: GameResult['teams']) {
   if (!winners.includes(humanId)) return 'Verloren'
-  return winners.length > 1 ? 'Unentschieden!' : 'Gewonnen!'
+  return isTie(winners, teams) ? 'Unentschieden!' : 'Gewonnen!'
 }
 
 export function GameOverDialog({
@@ -60,15 +61,16 @@ export function GameOverDialog({
     ? seriesStandings(ids, series.results).map((s) => ({ id: s.player, total: s.total }))
     : roundRanking.map((id) => ({ id, total: result.scores[id] ?? 0 }))
 
-  let title = headline(winners, humanId)
+  const teams = result.teams
+  let title = headline(winners, humanId, teams)
   if (inSeries && seriesOver)
     title = won
-      ? winners.length > 1
+      ? isTie(winners, teams)
         ? 'Match unentschieden!'
         : 'Match gewonnen!'
       : 'Match verloren'
   if (inSeries && !seriesOver)
-    title = `Runde ${series.results.length}: ${headline(result.winners, humanId)}`
+    title = `Runde ${series.results.length}: ${headline(result.winners, humanId, teams)}`
 
   const shownWinners = inSeries && !seriesOver ? result.winners : winners
 
@@ -87,7 +89,8 @@ export function GameOverDialog({
           </h2>
           {!shownWinners.includes(humanId) && shownWinners.length > 0 && (
             <p className="text-muted-foreground">
-              {shownWinners.map(nameOf).join(' & ')} gewinnt
+              {shownWinners.map(nameOf).join(' & ')}{' '}
+              {shownWinners.length > 1 ? 'gewinnen' : 'gewinnt'}
               {inSeries && !seriesOver ? ' die Runde' : ''}.
             </p>
           )}

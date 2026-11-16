@@ -673,6 +673,11 @@ export const canastaRules = defineGame<CanastaState, CanastaAction, CanastaOptio
       winners: state.order.filter((p) => scores[p] === best),
       ranking,
       scoreLabel: 'Punkte',
+      ...(state.order.length === 4
+        ? {
+            teams: [0, 1].map((side) => state.order.filter((p) => sideOf(state.order, p) === side)),
+          }
+        : {}),
     }
   },
 
