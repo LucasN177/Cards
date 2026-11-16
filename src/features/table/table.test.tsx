@@ -3,6 +3,7 @@ import { readSave } from '@/features/persistence/savedGames'
 import { useMatch } from '@/stores/matchStore'
 import { useStats } from '@/stores/statsStore'
 import { useSettings } from '@/stores/settingsStore'
+import { hideGame } from '@/test/hideGame'
 import { renderRoute } from '@/test/renderRoute'
 
 function setUpQuickGame() {
@@ -115,7 +116,9 @@ describe('table', () => {
   })
 
   it('shows a not-found page for games that cannot be played', async () => {
+    const hidden = hideGame('cribbage')
     renderRoute('/play/cribbage')
     expect(await screen.findByText('Dieses Spiel ist nicht spielbar.')).toBeInTheDocument()
+    hidden.mockRestore()
   })
 })

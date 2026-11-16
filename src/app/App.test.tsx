@@ -1,5 +1,6 @@
 import { cleanup, act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { hideGame } from '@/test/hideGame'
 import { renderRoute } from '@/test/renderRoute'
 import { useMatch } from '@/stores/matchStore'
 import { useSettings } from '@/stores/settingsStore'
@@ -8,14 +9,16 @@ import { resolveTheme } from './useTheme'
 
 describe('game catalog', () => {
   it('lists games by category and marks planned games', () => {
+    const hidden = hideGame('cribbage')
     renderRoute('/')
     expect(screen.getByRole('heading', { name: 'Spielauswahl' })).toBeInTheDocument()
 
     const german = screen.getByRole('region', { name: 'Deutsche Kartenspiele' })
     expect(within(german).getByText('Skat')).toBeInTheDocument()
-    // Cribbage is still on the roadmap.
+    // A game not yet playable (here: hidden) is marked as coming soon.
     const strategic = screen.getByRole('region', { name: 'Taktik & Strategie' })
     expect(within(strategic).getAllByText('Bald').length).toBeGreaterThan(0)
+    hidden.mockRestore()
   })
 
   it('links playable games to their setup page', async () => {
@@ -58,9 +61,11 @@ describe('game setup', () => {
   })
 
   it('shows planned games as coming soon', () => {
+    const hidden = hideGame('cribbage')
     renderRoute('/games/cribbage')
     expect(screen.getByText(/bald spielbar/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Spiel starten/ })).not.toBeInTheDocument()
+    hidden.mockRestore()
   })
 
   it('shows a not-found page for unknown games and routes', () => {

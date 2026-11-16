@@ -214,7 +214,7 @@ interface AiAgent<State, Action> {
      Schneider/Schwarz (angesagt nur im Handspiel), Überreizen, Wertung als Spielwert oder
      Seeger-Fabian; 3/6/12 Spiele; Anzeige des Mindestwerts je Spiel beim Ansagen; KI in drei
      Stufen (Reizgrenze aus Blattstärke, Drücken über alle Kartenpaare, Stichspiel mit Schmieren)
-5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage
+5. Ablegespiele: Rommé, Gin Rummy, Canasta, Cribbage ✅
    - **M24 – Rommé ✅:** 2–6 Spieler, 110 Karten (zwei Blätter, sechs Joker), Sätze und Folgen
      (Ass unten oder oben, Joker für jede Karte), erstes Auslegen ab 40 bzw. 30 Punkten in einem
      Zug, Anlegen, abgelegte Ablagekarte nicht sofort zurück, Hand-Rommé doppelt, Strafpunkte über
@@ -258,6 +258,15 @@ interface AiAgent<State, Action> {
      (Experte hält Paare für den Stapel zurück, wirft defensiv ab). Gemessen zu viert gegen ein
      fortgeschrittenes Paar: Anfänger gewinnen 4 % der Hände (−1264 Punkte), Fortgeschrittene 53 %
      (+36), Experten 55 % (+99)
+   - **M28 – Cribbage ✅:** 2–4 Spieler (zu viert Partner gegenüber; zu zweit sechs Karten und
+     zwei in den Crib, sonst fünf und eine, zu dritt eine Karte vom Stapel in den Crib), Crib des
+     Gebers, Starter mit His Heels, Pegging bis 31 mit Fünfzehn, Paaren, Folgen, Go und letzter
+     Karte (Go wird automatisch gesagt), Auszählen links vom Geber beginnend mit Fünfzehn, Paaren,
+     Folgen, Flush (Crib nur fünf Karten) und Nobs, Spiel bis 121 oder 61 mit sofortigem Ende;
+     Brett mit einer Spur pro Seite, Übersicht nach jeder Hand mit allen Kombinationen; KI in drei
+     Stufen (Fortgeschritten mittelt über alle Starter und bewertet den Crib, Experte rechnet die
+     möglichen Antworten des nächsten Spielers ein). Gemessen gegen Fortgeschritten, 200 Partien bis
+     121: Anfänger gewinnen 38,5 % (−8,5 Punkte), Experten 58,5 % (+4,3)
 6. Texas Hold'em Poker ✅
    - **M27 – Texas Hold'em ✅:** No Limit für 2–9 Spieler mit Spielchips (1000/2000/5000), Blinds
      10/20 mit wanderndem Dealer-Button (heads-up setzt der Dealer den Small Blind und spricht vor

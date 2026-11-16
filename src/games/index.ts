@@ -15,6 +15,7 @@ import { spadesGame } from './spades'
 import { presidentGame } from './president'
 import { sechsundsechzigGame } from './sechsundsechzig'
 import { canastaGame } from './canasta'
+import { cribbageGame } from './cribbage'
 import { holdemGame } from './texas-holdem'
 import { ginRummyGame } from './gin-rummy'
 import { rommeGame } from './romme'
@@ -46,11 +47,12 @@ const GAMES = [
   rommeGame,
   ginRummyGame,
   canastaGame,
+  cribbageGame,
   holdemGame,
 ]
 
 /** Registers all playable games. Imported once at app start. */
 export function registerGames(registry = gameRegistry) {
-  for (const game of GAMES) if (!registry.get(game.id)) registry.register(game)
-  if (TEST_GAMES_ENABLED && !registry.get(highCardGame.id)) registry.register(highCardGame)
+  for (const game of GAMES) if (!registry.has(game.id)) registry.register(game)
+  if (TEST_GAMES_ENABLED && !registry.has(highCardGame.id)) registry.register(highCardGame)
 }

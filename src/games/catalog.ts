@@ -150,7 +150,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     name: 'Cribbage',
     category: 'strategic',
     description: 'Punkte zählen auf dem Cribbage-Brett.',
-    players: { min: 2, max: 4 },
+    players: { min: 2, max: 4, default: 2 },
   },
   {
     id: 'euchre',
