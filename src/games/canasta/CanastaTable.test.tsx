@@ -7,7 +7,7 @@ import { canastaGame, type CanastaState } from './index'
 const cards = (codes: string) => parseCards(codes) as Card[]
 
 /** Two players; it is our turn to meld (we have drawn already). */
-function sessionWith(hand: string) {
+function sessionWith(hand: string, phase: 'play' | 'draw' = 'play', discard = '9C') {
   const game = {
     ...canastaGame,
     setup: (args: Parameters<typeof canastaGame.setup>[0]) => {
@@ -15,10 +15,10 @@ function sessionWith(hand: string) {
       return {
         ...s,
         hands: { a: cards(hand), b: cards('4S 5S 6S 7S 8S 9S 10S JS QS KS 4D 5D 6D 7D 8D') },
-        discard: cards('9C'),
+        discard: cards(discard),
         melds: [[], []],
         redThrees: [[], []],
-        phase: 'play',
+        phase,
         turn: 'a',
       } as CanastaState
     },
@@ -60,5 +60,15 @@ describe('Canasta table', () => {
     await user.click(screen.getByRole('button', { name: 'Auslegen (100)' }))
     expect(session.state.melds[0]!.map((m) => m.rank)).toEqual(['A', 'K'])
     expect(screen.getByRole('region', { name: 'Meldungen: Du' })).toHaveTextContent('3')
+  })
+
+  it('takes the pile in one tap with exactly two matching cards', async () => {
+    const user = userEvent.setup()
+    const session = sessionWith('AC AD AH 4H 5H', 'draw', '9C AS')
+    render(<CanastaTable session={session as never} humanId="a" />)
+    await user.click(screen.getByRole('button', { name: 'Aufnehmen & Asse mit 2 Karten auslegen' }))
+    expect(session.state.melds[0]![0]!.cards.map((c) => c.id)).toEqual(['AC', 'AD', 'AS'])
+    // The third ace stays in hand, the rest of the pile joins it.
+    expect(session.state.hands['a']!.map((c) => c.id).sort()).toEqual(['4H', '5H', '9C', 'AH'])
   })
 })

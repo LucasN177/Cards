@@ -23,9 +23,18 @@ export interface CanastaOptions {
   readonly targetScore: 5000 | 2500 | 0
   /** Variant: the discard pile is always frozen (taking it always needs a natural pair). */
   readonly alwaysFrozen: boolean
+  /**
+   * Variant: a side that has already melded the top card's rank takes the pile without hand
+   * cards, even when it is frozen.
+   */
+  readonly takeOntoMeld: boolean
 }
 
-export const DEFAULT_CANASTA_OPTIONS: CanastaOptions = { targetScore: 5000, alwaysFrozen: false }
+export const DEFAULT_CANASTA_OPTIONS: CanastaOptions = {
+  targetScore: 5000,
+  alwaysFrozen: false,
+  takeOntoMeld: false,
+}
 
 /** A group of hand cards for the side's meld of `rank` (new, or added to the existing one). */
 export interface MeldGroup {
@@ -421,11 +430,12 @@ export function takePileProblem(
   const hand = state.hands[player]!
   const fromHand = (group?.cardIds ?? []).map((id) => hand.find((c) => c.id === id))
   if (fromHand.some((c) => !c)) return 'Diese Karten hast du nicht'
-  if (pileFrozenFor(state, side)) {
+  const melded = state.melds[side]!.some((m) => m.rank === rank)
+  if (pileFrozenFor(state, side) && !(state.options.takeOntoMeld && melded)) {
     const naturals = fromHand.filter((c) => c && !isWild(c)).length
     if (naturals < 2)
       return 'Der Stapel ist eingefroren: du brauchst zwei natürliche Karten zur obersten Karte'
-  } else if (!state.melds[side]!.some((m) => m.rank === rank) && fromHand.length < 2) {
+  } else if (!melded && fromHand.length < 2) {
     return 'Leg die oberste Karte mit zwei Karten aus deiner Hand ab (oder an eure Meldung an)'
   }
   const groupsWithTop = groups.some((g) => g.rank === rank)
@@ -442,6 +452,30 @@ export function takePileProblem(
   if (left <= 1 && canastasIn(outcome.melds) < canastasNeededFor(state.order.length))
     return 'Ausmachen geht erst mit genug Canastas – behalte mindestens zwei Karten'
   return null
+}
+
+/**
+ * The cards to take the pile with in one go: two cards for the top card's rank (two naturals,
+ * or a natural and a wild card when the pile is not frozen), or – when the side already melds
+ * that rank and the pile may be taken onto it – every natural of that rank (with the
+ * `takeOntoMeld` variant) or none. Null when the hand has no such cards. The rules still check
+ * the rest (first-meld minimum, keeping cards).
+ */
+export function quickTakeGroups(view: CanastaView): MeldGroup[] | null {
+  const top = view.discardTop
+  if (!top || isWild(top) || isBlackThree(top)) return null
+  const rank = naturalRank(top)!
+  const naturals = view.hand.filter((c) => !isWild(c) && naturalRank(c) === rank)
+  const wild = view.hand.find(isWild)
+  const melded = view.melds[view.mySide]!.some((m) => m.rank === rank)
+  const ontoMeld = melded && (view.options.takeOntoMeld || !view.pileFrozen)
+  let cards: Card[]
+  if (ontoMeld && view.options.takeOntoMeld) cards = naturals
+  else if (naturals.length >= 2) cards = naturals.slice(0, 2)
+  else if (ontoMeld) cards = naturals
+  else if (!view.pileFrozen && naturals.length === 1 && wild) cards = [naturals[0]!, wild]
+  else return null
+  return [{ rank, cardIds: cards.map((c) => c.id) }]
 }
 
 // --- Game definition ---------------------------------------------------------------------------
@@ -469,6 +503,13 @@ export const canastaRules = defineGame<CanastaState, CanastaAction, CanastaOptio
       label: 'Stapel immer eingefroren',
       description:
         'Den Ablagestapel nimmt man nur mit zwei natürlichen Karten zur obersten Karte auf.',
+    },
+    {
+      type: 'boolean',
+      key: 'takeOntoMeld',
+      label: 'Stapel auf eigene Meldung aufnehmen',
+      description:
+        'Habt ihr den Wert der obersten Karte schon ausgelegt, nehmt ihr den Stapel auch ohne passende Handkarten auf – selbst wenn er eingefroren ist.',
     },
   ],
 

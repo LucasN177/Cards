@@ -251,7 +251,9 @@ interface AiAgent<State, Action> {
      Wert und Seite, Mindestwert der ersten Meldung nach Punktestand (15/50/90/120), Ablagestapel
      aufnehmen (eingefroren ohne eigene Meldung oder mit wilder Karte darin), reiner Canasta 500,
      gemischter 300, Ausmachen 100, verdeckt 200, Hand endet bei leerem Stapel; Partie bis
-     5000/2500 oder eine Hand, Variante „Stapel immer eingefroren“; Gruppen vormerken, Hinweis
+     5000/2500 oder eine Hand, Varianten „Stapel immer eingefroren“ und „Stapel auf eigene
+     Meldung aufnehmen“ (ohne Handkarten, auch eingefroren); Knopf „Aufnehmen & auslegen“ nimmt
+     den Stapel mit genau zwei passenden Karten auf (mit der Variante alle des Werts); Gruppen vormerken, Hinweis
      zeigt, was einer Meldung noch fehlt (neue Session-Methode `whyNot`); KI in drei Stufen
      (Experte hält Paare für den Stapel zurück, wirft defensiv ab). Gemessen zu viert gegen ein
      fortgeschrittenes Paar: Anfänger gewinnen 4 % der Hände (−1264 Punkte), Fortgeschrittene 53 %

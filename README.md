@@ -43,7 +43,7 @@ Popular card games with regional rules and variations.
 - [x] Schwimmen (31) – 2–9 players, swap one or all cards, pass (new middle when everybody passes), knock, 31 ends the round ("Feuer"), 2–4 lives plus swimming, three AI levels
 - [x] Durak – 2–6 players, 36 cards, trump from the stock, attack and defend card by card, throw-ins by everybody or only the attacker, at most six attack cards, refill to six, three AI levels
 - [x] Rommé – 2–6 players, 110 cards with jokers, sets and runs, first lay-out of 40 (or 30) points, laying off, Hand-Rommé doubles, penalty points over 1/3/5 rounds, staging groups before laying out, three AI levels
-- [x] Canasta – classic rules for 2–4 players (four: partnerships), 108 cards, jokers and twos wild, red threes as bonus cards, black threes block the pile, first-meld minimum by score (15/50/90/120), taking the (frozen) pile, natural and mixed canastas, going out (concealed), play to 5000/2500 or a single hand, optional "pile always frozen", hints explaining what a meld still needs, three AI levels
+- [x] Canasta – classic rules for 2–4 players (four: partnerships), 108 cards, jokers and twos wild, red threes as bonus cards, black threes block the pile, first-meld minimum by score (15/50/90/120), taking the (frozen) pile, natural and mixed canastas, going out (concealed), play to 5000/2500 or a single hand, optional "pile always frozen", optional taking the pile onto an own meld of that rank without hand cards (even when frozen), a one-tap button that takes the pile with exactly the two cards it needs (or, with that option, lays every natural of the rank onto the meld), hints explaining what a meld still needs, three AI levels
 
 ### 🏆 Competitive & Strategic Games
 

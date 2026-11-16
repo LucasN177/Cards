@@ -9,6 +9,7 @@ import {
   type Meld,
   meldProblem,
   minimumFor,
+  quickTakeGroups,
   sideOf,
 } from './index'
 
@@ -299,4 +300,53 @@ describe('AI', () => {
       expect(await average('expert')).toBeGreaterThan(-100)
     },
   )
+})
+
+describe('taking the pile in one go', () => {
+  const view = (s: CanastaState) => rules.playerView(s, 'a')
+
+  it('uses exactly two naturals and keeps the other cards of that rank', () => {
+    const s = state({
+      hands: { a: 'KC KD KS KH 4S 5S' },
+      melds: [[meld('A', 'AC AD AH')], []],
+      discard: '6C KC:1',
+      phase: 'draw',
+    })
+    const groups = quickTakeGroups(view(s))!
+    expect(groups).toEqual([{ rank: 'K', cardIds: ['KC', 'KD'] }])
+    const after = apply(s, ['a', { type: 'takePile', groups }])
+    expect(after.melds[0]!.find((m) => m.rank === 'K')!.cards).toHaveLength(3)
+    expect(after.hands['a']!.map((c) => c.id).sort()).toEqual(['4S', '5S', '6C', 'KH', 'KS'])
+  })
+
+  it('pairs a natural with a wild card only while the pile is not frozen', () => {
+    const base = {
+      hands: { a: 'KC 2D 4S 5S' },
+      melds: [[meld('A', 'AC AD AH')], []] as [Meld[], Meld[]],
+      phase: 'draw' as const,
+    }
+    expect(quickTakeGroups(view(state({ ...base, discard: '6C KH' })))).toEqual([
+      { rank: 'K', cardIds: ['KC', '2D'] },
+    ])
+    expect(quickTakeGroups(view(state({ ...base, discard: '6C 2H KH' })))).toBeNull()
+  })
+
+  it('variant: takes a frozen pile onto an own meld and lays on every natural', () => {
+    const spec = {
+      hands: { a: 'KH KS:1 KD:1 4S 5S' },
+      melds: [[meld('K', 'KC KD KS')], []] as [Meld[], Meld[]],
+      discard: '6C 2H KC:1',
+      phase: 'draw' as const,
+    }
+    const plain = state(spec)
+    expect(problem(plain, { type: 'takePile', groups: [] })).toMatch(/eingefroren/)
+
+    const s = state({ ...spec, options: { takeOntoMeld: true } })
+    expect(problem(s, { type: 'takePile', groups: [] })).toBeNull()
+    const groups = quickTakeGroups(view(s))!
+    expect(groups[0]!.cardIds).toHaveLength(3)
+    const after = apply(s, ['a', { type: 'takePile', groups }])
+    expect(after.melds[0]![0]!.cards).toHaveLength(7)
+    expect(after.hands['a']!.map((c) => c.id).sort()).toEqual(['2H', '4S', '5S', '6C'])
+  })
 })

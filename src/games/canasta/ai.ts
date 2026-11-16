@@ -111,7 +111,7 @@ function planTakePile(view: CanastaView, hand: readonly Card[]): MeldGroup[] | n
   const naturals = byRank.get(rank) ?? []
   const melds = ownMelds(view)
   let topGroup: Card[] | null = null
-  if (view.pileFrozen) {
+  if (view.pileFrozen && !(view.options.takeOntoMeld && meldOf(melds, rank))) {
     if (naturals.length >= 2) topGroup = [...naturals]
   } else if (meldOf(melds, rank)) topGroup = [...naturals]
   else if (naturals.length >= 2) topGroup = [...naturals]

@@ -23,6 +23,7 @@ import {
   type MeldGroup,
   naturalRank,
   pointsOf,
+  quickTakeGroups,
 } from './canasta'
 
 type CanastaSession = GameSession<CanastaState, CanastaAction, CanastaOptions, CanastaView>
@@ -229,6 +230,13 @@ export default function CanastaTable({
 
   const takeAction: CanastaAction = { type: 'takePile', groups: staged }
   const meldAction: CanastaAction = { type: 'meld', groups: staged }
+  // One tap: take the pile with just the cards it needs (nothing staged by hand).
+  const quickGroups = drawing && staged.length === 0 ? quickTakeGroups(view) : null
+  const quickAction: CanastaAction | null =
+    quickGroups && session.whyNot(humanId, { type: 'takePile', groups: quickGroups }) === null
+      ? { type: 'takePile', groups: quickGroups }
+      : null
+  const quickCount = quickGroups?.[0]?.cardIds.length ?? 0
   const takeProblem = drawing && view.discardTop ? session.whyNot(humanId, takeAction) : null
   const meldProblem = playing && staged.length > 0 ? session.whyNot(humanId, meldAction) : null
   const stagedValue = pointsOf(staged.flatMap((g) => g.cardIds).map(byId))
@@ -359,6 +367,13 @@ export default function CanastaTable({
                       Zu {rankLabel(g.rank)} vormerken
                     </Button>
                   ))}
+                {quickAction && view.discardTop && (
+                  <Button size="sm" className="h-10" onClick={() => act(quickAction)}>
+                    {quickCount > 0
+                      ? `Aufnehmen & ${rankLabel(naturalRank(view.discardTop)!)} mit ${quickCount} ${quickCount === 1 ? 'Karte' : 'Karten'} auslegen`
+                      : `Aufnehmen & an ${rankLabel(naturalRank(view.discardTop)!)} anlegen`}
+                  </Button>
+                )}
                 {drawing && view.discardTop && (
                   <Button
                     size="sm"

@@ -65,6 +65,8 @@ export default function CanastaRules({ options }: RulesProps) {
             <strong>Eingefroren</strong> ist der Stapel, solange deine Seite noch nichts gemeldet
             hat oder eine wilde Karte darin liegt: Dann brauchst du zwei natürliche Karten zur
             obersten Karte. Liegt eine schwarze Drei oder eine wilde Karte oben, geht es gar nicht.
+            Mit der Einstellung „Stapel auf eigene Meldung aufnehmen“ genügt es auch bei
+            eingefrorenem Stapel, dass ihr den Wert der obersten Karte schon ausgelegt habt.
           </li>
           <li>Melde und lege an, so viel du willst, und leg zum Schluss eine Karte ab.</li>
         </RulesList>
@@ -107,6 +109,12 @@ export default function CanastaRules({ options }: RulesProps) {
           <li>
             „Auslegen“ meldet alles Vorgemerkte auf einmal; vor dem Ziehen nimmt „Ablage aufnehmen“
             den Ablagestapel mit den vorgemerkten Karten auf. Ein Hinweis sagt dir, was noch fehlt.
+          </li>
+          <li>
+            Geht es ohne Vormerken, nimmt ein Knopf den Stapel mit einem Tipp auf und legt die
+            oberste Karte mit genau zwei passenden Handkarten aus – weitere Karten dieses Werts
+            bleiben auf der Hand. Mit „Stapel auf eigene Meldung aufnehmen“ werden dabei alle
+            natürlichen Karten des Werts an eure Meldung angelegt.
           </li>
           <li>Zum Ablegen genau eine Karte wählen und „ablegen“ tippen.</li>
         </RulesList>
