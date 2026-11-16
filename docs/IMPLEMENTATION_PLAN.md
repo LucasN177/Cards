@@ -267,6 +267,14 @@ interface AiAgent<State, Action> {
      Stufen (Fortgeschritten mittelt über alle Starter und bewertet den Crib, Experte rechnet die
      möglichen Antworten des nächsten Spielers ein). Gemessen gegen Fortgeschritten, 200 Partien bis
      121: Anfänger gewinnen 38,5 % (−8,5 Punkte), Experten 58,5 % (+4,3)
+   - **M29 – Doppelkopf-Regelwerke ✅:** Auswahl „Regelwerk“ (Turnier/DDV, Hausregeln,
+     Einsteiger, Eigene) setzt die Schalter auf einmal – generisch über `presets` an
+     Auswahl-Optionen, ein geänderter Schalter wechselt auf „Eigene“; neue Regeln: angesagte
+     Hochzeit (erster fremder Stich der ersten drei bestimmt den Partner, sonst allein wie ein
+     Solo, Ansagefristen verschieben sich, Solo geht vor; ohne Soli wird nur die Braut gefragt),
+     zweite Dulle sticht die erste (außer im letzten Stich), Schweinchen (beide Karo-Asse höchste
+     Trümpfe, kein Fuchs), Bockrunden (nach 120:120 oder verlorener Ansage vier Spiele doppelt);
+     KI sagt mit schwacher Hand Hochzeit an
 6. Texas Hold'em Poker ✅
    - **M27 – Texas Hold'em ✅:** No Limit für 2–9 Spieler mit Spielchips (1000/2000/5000), Blinds
      10/20 mit wanderndem Dealer-Button (heads-up setzt der Dealer den Small Blind und spricht vor

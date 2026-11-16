@@ -3,6 +3,7 @@ import { ChoiceGroup } from '@/components/ChoiceGroup'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import type { GameOptionField } from '@/engine'
+import { applyOption } from './applyOption'
 
 interface RuleOptionsProps {
   readonly fields: readonly GameOptionField[]
@@ -33,7 +34,7 @@ function BooleanOption({
 
 /** Renders a game's rule variants from its `optionFields`, so games need no setup UI code. */
 export function RuleOptions({ fields, value, onChange }: RuleOptionsProps) {
-  const set = (key: string, next: unknown) => onChange({ ...value, [key]: next })
+  const set = (key: string, next: unknown) => onChange(applyOption(fields, value, key, next))
   return (
     <div className="space-y-5">
       {fields.map((field) =>

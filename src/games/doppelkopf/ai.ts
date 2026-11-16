@@ -5,6 +5,7 @@ import {
   type DoppelkopfAction,
   type DoppelkopfView,
   isTrump,
+  secondDulleNow,
   type SoloKind,
   suitOf,
   trickWinner,
@@ -44,8 +45,14 @@ export function createDoppelkopfAgent(
     chooseAction({ view, legalActions, rng }) {
       const hand = view.hand
       if (view.phase === 'reservation') {
-        const solo = chooseSolo(hand, difficulty)
-        return solo ? { type: 'solo', kind: solo } : { type: 'healthy' }
+        const solo = view.options.soli ? chooseSolo(hand, difficulty) : null
+        if (solo) return { type: 'solo', kind: solo }
+        // Both club queens: a strong hand plays the silent wedding, otherwise ask for a partner.
+        if (legalActions.some((a) => a.type === 'wedding')) {
+          const strong = handStrength(hand, { type: 'normal' }) >= (hand.length >= 11 ? 12 : 10)
+          if (!strong || difficulty === 'beginner') return { type: 'wedding' }
+        }
+        return { type: 'healthy' }
       }
       const me = view.turn
       const contract = view.contract
@@ -70,8 +77,9 @@ export function createDoppelkopfAgent(
         [...list].sort((a, b) => cardPoints(b) - cardPoints(a) || value(a) - value(b))[0]!
 
       const friend = (p: PlayerId) => p !== me && view.knownParties[p] === view.myParty
+      const dulle = secondDulleNow(view.options, hand.length)
       const wins = (c: SuitedCard) =>
-        trickWinner([...view.trick, { player: me, card: c }], contract) === me
+        trickWinner([...view.trick, { player: me, card: c }], contract, dulle) === me
       const winners = cards.filter(wins)
       const lastToPlay = view.trick.length === 3
 
@@ -90,7 +98,7 @@ export function createDoppelkopfAgent(
         return asPlay(lowest(plain.length > 0 ? plain : cards))
       }
 
-      const current = trickWinner(view.trick, contract)
+      const current = trickWinner(view.trick, contract, dulle)
       if (friend(current)) {
         // Partner has the trick: add points when nobody unknown comes after us.
         const safe = lastToPlay || difficulty === 'beginner'

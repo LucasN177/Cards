@@ -17,29 +17,90 @@ import {
   type SuitedCard,
 } from '@/engine'
 
+export type Ruleset = 'ddv' | 'haus' | 'einsteiger' | 'eigene'
+
 export interface DoppelkopfOptions {
+  /** A preset of the switches below ("eigene": changed by hand). */
+  readonly ruleset: Ruleset
   /** 48 cards with nines (12 each) or 40 without (10 each). */
   readonly nines: boolean
   readonly soli: boolean
   /** Fuchs, Doppelkopf and Karlchen. */
   readonly extras: boolean
   readonly games: 4 | 8 | 12
+  /** Both club queens may announce a wedding: the first trick won by another player decides the partner. */
+  readonly wedding: boolean
+  /** The second heart ten beats the first (except in the last trick). */
+  readonly secondDulle: boolean
+  /** Both diamond aces in one hand are the highest trumps ("Schweinchen"). */
+  readonly pigs: boolean
+  /** 120:120 or a lost announcement starts a round of four doubled games. */
+  readonly bock: boolean
+}
+
+type RuleSwitches = Pick<
+  DoppelkopfOptions,
+  'nines' | 'soli' | 'extras' | 'wedding' | 'secondDulle' | 'pigs' | 'bock'
+>
+
+/** The switches of each rule set. */
+export const RULESETS: Readonly<Record<Exclude<Ruleset, 'eigene'>, RuleSwitches>> = {
+  ddv: {
+    nines: true,
+    soli: true,
+    extras: true,
+    wedding: true,
+    secondDulle: false,
+    pigs: false,
+    bock: false,
+  },
+  haus: {
+    nines: true,
+    soli: true,
+    extras: true,
+    wedding: true,
+    secondDulle: true,
+    pigs: true,
+    bock: true,
+  },
+  einsteiger: {
+    nines: true,
+    soli: false,
+    extras: false,
+    wedding: false,
+    secondDulle: false,
+    pigs: false,
+    bock: false,
+  },
 }
 
 export const DEFAULT_DOPPELKOPF_OPTIONS: DoppelkopfOptions = {
-  nines: true,
-  soli: true,
-  extras: true,
+  ruleset: 'ddv',
+  ...RULESETS.ddv,
   games: 8,
 }
 
 export type SoloKind = 'queens' | 'jacks' | 'fleischlos' | Suit
 
-export type Contract =
+export type Contract = (
   | { readonly type: 'normal' }
   /** One player holds both club queens and plays alone without telling ("stille Hochzeit"). */
   | { readonly type: 'silent'; readonly player: PlayerId }
+  /**
+   * Announced wedding: the first of the first three tricks won by another player makes that
+   * player the partner (`clarified`: tricks played until then). Nobody: the bride plays alone.
+   */
+  | {
+      readonly type: 'wedding'
+      readonly player: PlayerId
+      readonly partner: PlayerId | null
+      readonly clarified: number | null
+    }
   | { readonly type: 'solo'; readonly kind: SoloKind; readonly player: PlayerId }
+) & {
+  /** Schweinchen: whoever holds both diamond aces; they are the highest trumps. */
+  readonly pigs?: PlayerId
+}
 
 export type Party = 're' | 'kontra'
 
@@ -48,6 +109,7 @@ export type AnnouncementLevel = 0 | 1 | 2 | 3 | 4
 
 export type DoppelkopfAction =
   | { readonly type: 'healthy' }
+  | { readonly type: 'wedding' }
   | { readonly type: 'solo'; readonly kind: SoloKind }
   | { readonly type: 'announce'; readonly level: AnnouncementLevel }
   | { readonly type: 'play'; readonly cardId: CardId }
@@ -77,11 +139,19 @@ export interface DoppelkopfResult {
   readonly items: readonly string[]
   readonly extras: readonly ExtraPoint[]
   readonly delta: Readonly<Record<PlayerId, number>>
+  /** A bock game (doubled). */
+  readonly bock: boolean
+  /** This game started a bock round. */
+  readonly bockStarted: boolean
 }
 
 export type DoppelkopfEvent =
   | { readonly type: 'healthy'; readonly player: PlayerId }
   | { readonly type: 'solo'; readonly player: PlayerId; readonly kind: SoloKind }
+  | { readonly type: 'wedding'; readonly player: PlayerId }
+  /** The wedding is decided: `partner` joins the bride (null: she plays alone). */
+  | { readonly type: 'partner'; readonly bride: PlayerId; readonly partner: PlayerId | null }
+  | { readonly type: 'pigs'; readonly player: PlayerId }
   | {
       readonly type: 'announced'
       readonly player: PlayerId
@@ -106,6 +176,10 @@ export interface DoppelkopfState {
   readonly trick: readonly TrickCard[]
   readonly tricks: readonly Trick[]
   readonly gameNumber: number
+  /** A wedding announced in the reservation (a later solo still beats it). */
+  readonly pendingWedding: PlayerId | null
+  /** Bock games still to come (the current one included). */
+  readonly bock: number
   readonly scores: Readonly<Record<PlayerId, number>>
   readonly results: readonly DoppelkopfResult[]
   readonly events: readonly DoppelkopfEvent[]
@@ -133,6 +207,10 @@ export interface DoppelkopfView {
   readonly myPoints: number
   readonly played: readonly SuitedCard[]
   readonly gameNumber: number
+  /** Bock games still to come (the current one included). */
+  readonly bock: number
+  /** I hold both club queens and may announce a wedding. */
+  readonly canWed: boolean
   readonly scores: DoppelkopfState['scores']
   readonly results: readonly DoppelkopfResult[]
   readonly events: readonly DoppelkopfEvent[]
@@ -149,9 +227,10 @@ export const sumPoints = (cards: readonly SuitedCard[]) =>
 const PICTURE_SUITS: readonly Suit[] = ['clubs', 'spades', 'hearts', 'diamonds']
 const isDulle = (c: SuitedCard) => c.rank === '10' && c.suit === 'hearts'
 export const isClubQueen = (c: SuitedCard) => c.rank === 'Q' && c.suit === 'clubs'
+export const isFox = (c: SuitedCard) => c.rank === 'A' && c.suit === 'diamonds'
 
 /** The trump suit of a game: diamonds normally, the chosen suit in a suit solo, none otherwise. */
-function trumpSuit(contract: Contract): Suit | null {
+export function trumpSuit(contract: Contract): Suit | null {
   if (contract.type !== 'solo') return 'diamonds'
   const k = contract.kind
   return k === 'queens' || k === 'jacks' || k === 'fleischlos' ? null : k
@@ -163,6 +242,7 @@ export function trumpRank(c: SuitedCard, contract: Contract): number {
   if (kind === 'fleischlos') return -1
   if (kind === 'queens') return c.rank === 'Q' ? 10 + (3 - PICTURE_SUITS.indexOf(c.suit)) : -1
   if (kind === 'jacks') return c.rank === 'J' ? 10 + (3 - PICTURE_SUITS.indexOf(c.suit)) : -1
+  if (contract.pigs && isFox(c)) return 110
   if (isDulle(c)) return 100
   if (c.rank === 'Q') return 90 + (3 - PICTURE_SUITS.indexOf(c.suit))
   if (c.rank === 'J') return 80 + (3 - PICTURE_SUITS.indexOf(c.suit))
@@ -190,13 +270,28 @@ function power(c: SuitedCard, contract: Contract, led: Suit | 'trump'): number {
   return c.suit === led ? plainOrder(contract).indexOf(c.rank) : -1
 }
 
-/** Highest card wins; of two equal cards the first one played. */
-export function trickWinner(trick: readonly TrickCard[], contract: Contract): PlayerId {
+/**
+ * Highest card wins; of two equal cards the first one played – with `secondDulle` the second
+ * heart ten beats the first (callers pass false for the last trick, see `secondDulleNow`).
+ */
+export function trickWinner(
+  trick: readonly TrickCard[],
+  contract: Contract,
+  secondDulle = false,
+): PlayerId {
   const led = suitOf(trick[0]!.card, contract)
-  return trick.reduce((best, t) =>
-    power(t.card, contract, led) > power(best.card, contract, led) ? t : best,
-  ).player
+  return trick.reduce((best, t) => {
+    const p = power(t.card, contract, led)
+    const b = power(best.card, contract, led)
+    if (p > b) return t
+    const dullen = isDulle(t.card) && isDulle(best.card) && trumpRank(t.card, contract) >= 0
+    return secondDulle && p === b && dullen ? t : best
+  }).player
 }
+
+/** Whether the second Dulle beats the first in this trick (never in the last one). */
+export const secondDulleNow = (options: DoppelkopfOptions, cardsInHand: number) =>
+  Boolean(options.secondDulle) && cardsInHand > 1
 
 const SUIT_ORDER: Readonly<Record<Suit, number>> = { clubs: 0, spades: 1, hearts: 2, diamonds: 3 }
 
@@ -224,6 +319,13 @@ export const handSize = (options: DoppelkopfOptions) => (options.nines ? 12 : 10
 /** Cards a player must still hold to make an announcement of `level`. */
 export const announceDeadline = (level: AnnouncementLevel, options: DoppelkopfOptions) =>
   handSize(options) - 1 - level
+
+export const RULESET_NAME: Readonly<Record<Ruleset, string>> = {
+  ddv: 'Turnier (DDV)',
+  haus: 'Hausregeln',
+  einsteiger: 'Einsteiger',
+  eigene: 'Eigene Regeln',
+}
 
 export const soloName = (kind: SoloKind) =>
   ({
@@ -258,11 +360,11 @@ function startGame(state: DoppelkopfState, number: number, dealer: PlayerId): Do
     state.order.map((p, i) => [p, sortHand(deck.slice(i * size, (i + 1) * size), normal)]),
   )
   const first = nextPlayer(state.order, dealer)
-  return {
+  const dealt: DoppelkopfState = {
     ...state,
     dealer,
     hands,
-    phase: state.options.soli ? 'reservation' : 'playing',
+    phase: 'reservation',
     contract: normal,
     teams: {},
     revealed: [],
@@ -271,9 +373,26 @@ function startGame(state: DoppelkopfState, number: number, dealer: PlayerId): Do
     trick: [],
     tricks: [],
     gameNumber: number,
+    pendingWedding: null,
     rng: rng.state,
-    ...(state.options.soli ? {} : setupNormal(state.order, hands)),
   }
+  if (state.options.soli) return dealt
+  // Without solos only a possible wedding needs asking – and only its holder.
+  const bride = state.options.wedding ? weddingHolder(dealt) : null
+  if (bride) return { ...dealt, turn: bride }
+  return startPlay(dealt, null)
+}
+
+/** The player holding both club queens, if any. */
+const weddingHolder = (state: DoppelkopfState) =>
+  state.order.find((p) => state.hands[p]!.filter(isClubQueen).length === 2) ?? null
+
+/** Schweinchen: with the option, in games with diamond trumps, whoever holds both diamond aces. */
+function withPigs(state: DoppelkopfState, contract: Contract): Contract {
+  if (!state.options.pigs || trumpSuit(contract) !== 'diamonds') return contract
+  if (contract.type === 'solo' && contract.kind !== 'diamonds') return contract
+  const holder = state.order.find((p) => state.hands[p]!.filter(isFox).length === 2)
+  return holder ? { ...contract, pigs: holder } : contract
 }
 
 /** Parties of a normal game; both club queens in one hand make a silent wedding. */
@@ -298,39 +417,78 @@ function setupNormal(order: readonly PlayerId[], hands: Record<PlayerId, readonl
   }
 }
 
-function startPlay(state: DoppelkopfState, contract: Contract | null): DoppelkopfState {
+function startPlay(state: DoppelkopfState, chosen: Contract | null): DoppelkopfState {
   const first = nextPlayer(state.order, state.dealer)
-  if (contract?.type === 'solo') {
-    const hands = Object.fromEntries(
-      state.order.map((p) => [p, sortHand(state.hands[p]!, contract)]),
-    )
-    return {
+  let next: DoppelkopfState
+  if (chosen?.type === 'solo') {
+    next = {
       ...state,
-      hands,
-      contract,
-      teams: Object.fromEntries(
-        state.order.map((p) => [p, p === contract.player ? 're' : 'kontra']),
-      ),
+      contract: chosen,
+      teams: Object.fromEntries(state.order.map((p) => [p, p === chosen.player ? 're' : 'kontra'])),
       revealed: [...state.order],
       phase: 'playing',
       // The soloist leads.
-      turn: contract.player,
+      turn: chosen.player,
+    }
+  } else if (chosen?.type === 'wedding') {
+    next = {
+      ...state,
+      contract: chosen,
+      // Provisional until the partner is found.
+      teams: Object.fromEntries(state.order.map((p) => [p, p === chosen.player ? 're' : 'kontra'])),
+      revealed: [chosen.player],
+      phase: 'playing',
+      turn: first,
+    }
+  } else {
+    next = { ...state, ...setupNormal(state.order, state.hands), phase: 'playing', turn: first }
+  }
+  const contract = withPigs(next, next.contract)
+  const hands = Object.fromEntries(state.order.map((p) => [p, sortHand(state.hands[p]!, contract)]))
+  const events: DoppelkopfEvent[] = contract.pigs
+    ? [...next.events, { type: 'pigs', player: contract.pigs }]
+    : [...next.events]
+  return { ...next, contract, hands, events }
+}
+
+/** After a trick in an open wedding: the first trick won by another player finds the partner. */
+function clarifyWedding(state: DoppelkopfState, winner: PlayerId): DoppelkopfState {
+  const c = state.contract
+  if (c.type !== 'wedding' || c.clarified !== null) return state
+  const played = state.tricks.length
+  if (winner !== c.player) {
+    return {
+      ...state,
+      contract: { ...c, partner: winner, clarified: played },
+      teams: { ...state.teams, [winner]: 're' },
+      revealed: [...state.order],
+      events: [...state.events, { type: 'partner', bride: c.player, partner: winner }],
     }
   }
-  return { ...state, ...setupNormal(state.order, state.hands), phase: 'playing', turn: first }
+  if (played < 3) return state
+  // Three tricks alone: the bride plays alone against the other three.
+  return {
+    ...state,
+    contract: { ...c, clarified: played },
+    revealed: [...state.order],
+    events: [...state.events, { type: 'partner', bride: c.player, partner: null }],
+  }
 }
 
 function nextGame(state: DoppelkopfState, result: DoppelkopfResult): DoppelkopfState {
   const scores = Object.fromEntries(
     state.order.map((p) => [p, state.scores[p]! + (result.delta[p] ?? 0)]),
   )
-  const finished: DoppelkopfState = {
+  let finished: DoppelkopfState = {
     ...state,
     scores,
     results: [...state.results, result],
     events: [...state.events, { type: 'game', result }],
   }
   if (state.gameNumber >= state.options.games) return { ...finished, phase: 'over' }
+  // Bock: this game used one, a trigger adds a round of four.
+  const bock = Math.max(0, (state.bock ?? 0) - (result.bock ? 1 : 0)) + (result.bockStarted ? 4 : 0)
+  finished = { ...finished, bock }
   const next = startGame(finished, state.gameNumber + 1, nextPlayer(state.order, state.dealer))
   return { ...next, events: finished.events }
 }
@@ -353,6 +511,8 @@ export function target(
 
 function scoreGame(state: DoppelkopfState): DoppelkopfState {
   const c = state.contract
+  // A wedding with a partner counts like a normal game; alone, like a solo.
+  const normalLike = c.type === 'normal' || (c.type === 'wedding' && c.partner !== null)
   const parties: Party[] = ['re', 'kontra']
   const won = (party: Party) =>
     state.tricks
@@ -374,7 +534,7 @@ function scoreGame(state: DoppelkopfState): DoppelkopfState {
     const loser: Party = winner === 're' ? 'kontra' : 're'
     value += 1
     items.push('Gewonnen')
-    if (winner === 'kontra' && c.type === 'normal') {
+    if (winner === 'kontra' && normalLike) {
       value += 1
       items.push('Gegen die Alten')
     }
@@ -403,13 +563,13 @@ function scoreGame(state: DoppelkopfState): DoppelkopfState {
       }
     }
   }
-  // Extra points only in normal games.
+  // Extra points only in normal games (Schweinchen cannot be caught as a fox).
   const extras: ExtraPoint[] = []
-  if (state.options.extras && c.type === 'normal') {
+  if (state.options.extras && normalLike) {
     state.tricks.forEach((t, i) => {
       const party = state.teams[t.winner]!
       for (const { player, card } of t.cards) {
-        if (card.rank === 'A' && card.suit === 'diamonds' && state.teams[player] !== party)
+        if (isFox(card) && !c.pigs && state.teams[player] !== party)
           extras.push({ party, kind: 'fuchs' })
       }
       if (sumPoints(t.cards.map((x) => x.card)) >= 40) extras.push({ party, kind: 'doppelkopf' })
@@ -422,13 +582,20 @@ function scoreGame(state: DoppelkopfState): DoppelkopfState {
   const extraNet =
     extras.filter((e) => e.party === 're').length -
     extras.filter((e) => e.party === 'kontra').length
-  const reScore = (winner === 're' ? value : winner === 'kontra' ? -value : 0) + extraNet
-  const alone = c.type !== 'normal'
+  const bock = state.options.bock && (state.bock ?? 0) > 0
+  if (bock && winner) items.push('Bock: doppelt')
+  const reScore =
+    ((winner === 're' ? value : winner === 'kontra' ? -value : 0) + extraNet) * (bock ? 2 : 1)
+  const alone = !normalLike
   const delta: Record<PlayerId, number> = {}
   for (const p of state.order) {
     if (state.teams[p] === 're') delta[p] = alone ? 3 * reScore : reScore
     else delta[p] = -reScore
   }
+  // A new bock round: 120:120, or a party lost after announcing.
+  const lostAnnouncement = parties.some((p) => state.announcements[p] !== null && winner !== p)
+  const bockStarted =
+    state.options.bock && ((points.re === 120 && points.kontra === 120) || lostAnnouncement)
   return nextGame(state, {
     number: state.gameNumber,
     contract: c,
@@ -438,6 +605,8 @@ function scoreGame(state: DoppelkopfState): DoppelkopfState {
     items,
     extras,
     delta,
+    bock,
+    bockStarted,
   })
 }
 
@@ -459,7 +628,13 @@ function canAnnounce(state: DoppelkopfState, player: PlayerId): AnnouncementLeve
   const current = state.announcements[party]
   const level = (current === null ? 0 : current + 1) as AnnouncementLevel
   if (level > 4) return null
-  return state.hands[player]!.length >= announceDeadline(level, state.options) ? level : null
+  // In a wedding the deadlines start once the partner is known.
+  const c = state.contract
+  if (c.type === 'wedding' && c.clarified === null) return null
+  const shift = c.type === 'wedding' ? c.clarified! : 0
+  return state.hands[player]!.length >= announceDeadline(level, state.options) - shift
+    ? level
+    : null
 }
 
 export const doppelkopfRules = defineGame<
@@ -473,6 +648,20 @@ export const doppelkopfRules = defineGame<
   players: { min: 4, max: 4 },
   defaultOptions: DEFAULT_DOPPELKOPF_OPTIONS,
   optionFields: [
+    {
+      type: 'choice',
+      key: 'ruleset',
+      label: 'Regelwerk',
+      description:
+        'Stellt die Regeln unten auf einmal ein. Änderst du einen Schalter, gelten eigene Regeln.',
+      choices: [
+        { value: 'ddv', label: 'Turnier (DDV)' },
+        { value: 'haus', label: 'Hausregeln' },
+        { value: 'einsteiger', label: 'Einsteiger' },
+        { value: 'eigene', label: 'Eigene' },
+      ],
+      presets: RULESETS,
+    },
     {
       type: 'choice',
       key: 'games',
@@ -501,6 +690,34 @@ export const doppelkopfRules = defineGame<
       label: 'Sonderpunkte',
       description: 'Fuchs gefangen, Doppelkopf (Stich mit 40 Augen), Karlchen im letzten Stich.',
     },
+    {
+      type: 'boolean',
+      key: 'wedding',
+      label: 'Hochzeit',
+      description:
+        'Wer beide Kreuz-Damen hat, darf Hochzeit ansagen: Wer zuerst einen der ersten drei Stiche gewinnt, wird Partner. Sonst spielt sie allein.',
+    },
+    {
+      type: 'boolean',
+      key: 'secondDulle',
+      label: 'Zweite Dulle sticht die erste',
+      description:
+        'Fallen beide Herz-Zehnen in einen Stich, gewinnt die zweite – außer im letzten Stich.',
+    },
+    {
+      type: 'boolean',
+      key: 'pigs',
+      label: 'Schweinchen',
+      description:
+        'Hat jemand beide Karo-Asse, sind sie die höchsten Trümpfe (auch im Karo-Solo). Sie zählen nicht als Fuchs.',
+    },
+    {
+      type: 'boolean',
+      key: 'bock',
+      label: 'Bockrunden',
+      description:
+        'Nach 120:120 oder einer verlorenen Ansage zählen die nächsten vier Spiele doppelt.',
+    },
   ],
 
   setup({ players, options, seed }) {
@@ -510,6 +727,7 @@ export const doppelkopfRules = defineGame<
     const base = {
       order,
       scores: Object.fromEntries(order.map((p) => [p, 0])),
+      bock: 0,
       results: [],
       events: [],
       options,
@@ -523,7 +741,12 @@ export const doppelkopfRules = defineGame<
   legalActions(state, player) {
     if (state.phase === 'over' || state.turn !== player) return []
     if (state.phase === 'reservation') {
-      return [{ type: 'healthy' }, ...SOLOS.map((kind) => ({ type: 'solo' as const, kind }))]
+      const wed = state.options.wedding && state.hands[player]!.filter(isClubQueen).length === 2
+      return [
+        { type: 'healthy' },
+        ...(wed ? [{ type: 'wedding' as const }] : []),
+        ...(state.options.soli ? SOLOS.map((kind) => ({ type: 'solo' as const, kind })) : []),
+      ]
     }
     const level = canAnnounce(state, player)
     return [
@@ -534,19 +757,25 @@ export const doppelkopfRules = defineGame<
 
   applyAction(state, player, action) {
     switch (action.type) {
-      case 'healthy': {
+      case 'healthy':
+      case 'wedding': {
+        const events: DoppelkopfEvent[] = [{ type: action.type, player }]
+        const pending = action.type === 'wedding' ? player : state.pendingWedding
         const next = nextPlayer(state.order, player)
-        const events: DoppelkopfEvent[] = [{ type: 'healthy', player }]
-        // Everybody is healthy once it is the first player's turn again.
-        if (next === nextPlayer(state.order, state.dealer))
-          return { ...startPlay(state, null), events }
-        return { ...state, turn: next, events }
+        // Everybody has spoken once it is the first player's turn again (without solos only the
+        // holder of the club queens is asked).
+        const done = !state.options.soli || next === nextPlayer(state.order, state.dealer)
+        if (!done) return { ...state, pendingWedding: pending, turn: next, events }
+        const contract: Contract | null = pending
+          ? { type: 'wedding', player: pending, partner: null, clarified: null }
+          : null
+        return startPlay({ ...state, pendingWedding: pending, events }, contract)
       }
       case 'solo':
-        return {
-          ...startPlay(state, { type: 'solo', kind: action.kind, player }),
-          events: [{ type: 'solo', player, kind: action.kind }],
-        }
+        return startPlay(
+          { ...state, events: [{ type: 'solo', player, kind: action.kind }] },
+          { type: 'solo', kind: action.kind, player },
+        )
       case 'announce': {
         const party = state.teams[player]!
         return {
@@ -569,7 +798,11 @@ export const doppelkopfRules = defineGame<
         if (trick.length < 4) {
           return { ...state, hands, trick, revealed, events, turn: nextPlayer(state.order, player) }
         }
-        const winner = trickWinner(trick, state.contract)
+        const winner = trickWinner(
+          trick,
+          state.contract,
+          secondDulleNow(state.options, hand.length),
+        )
         const next: DoppelkopfState = {
           ...state,
           hands,
@@ -582,7 +815,8 @@ export const doppelkopfRules = defineGame<
             { type: 'trick', winner, points: sumPoints(trick.map((t) => t.card)) },
           ],
         }
-        return hands[player]!.length === 0 ? scoreGame(next) : next
+        const clarified = clarifyWedding(next, winner)
+        return hands[player]!.length === 0 ? scoreGame(clarified) : clarified
       }
     }
   },
@@ -598,6 +832,9 @@ export const doppelkopfRules = defineGame<
     const knownRe = state.revealed.filter((p) => state.teams[p] === 're')
     if (c.type === 'normal' && knownRe.length === 2)
       for (const p of state.order) knownParties[p] = state.teams[p]
+    // An undecided wedding: only the bride is known.
+    if (c.type === 'wedding' && c.clarified === null)
+      for (const p of state.order) if (p !== c.player) delete knownParties[p]
     if (state.phase === 'playing' || state.phase === 'over')
       knownParties[player] = state.teams[player]
     const myParty =
@@ -627,6 +864,11 @@ export const doppelkopfRules = defineGame<
         .flatMap((t) => t.cards.map((x) => x.card))
         .concat(state.trick.map((t) => t.card)),
       gameNumber: state.gameNumber,
+      bock: state.options.bock ? state.bock : 0,
+      canWed:
+        state.phase === 'reservation' &&
+        Boolean(state.options.wedding) &&
+        (state.hands[player] ?? []).filter(isClubQueen).length === 2,
       scores: state.scores,
       results: state.results,
       events: state.events,
@@ -654,5 +896,5 @@ export const doppelkopfRules = defineGame<
         ? `solo ${action.kind}`
         : action.type === 'announce'
           ? `announce ${action.level}`
-          : 'healthy',
+          : action.type,
 })

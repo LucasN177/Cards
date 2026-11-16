@@ -7,6 +7,7 @@ import {
   doppelkopfGame,
   type DoppelkopfState,
   playableCards,
+  RULESETS,
   sortHand,
   target,
   trickWinner,
@@ -230,5 +231,112 @@ describe('AI', () => {
         expect(Object.values(r.delta).reduce((a, b) => a + b, 0)).toBe(0)
       }
     }
+  })
+})
+
+describe('rule sets and variants', () => {
+  it('has the DDV rules by default and presets for house and beginner rules', () => {
+    expect(DEFAULT_DOPPELKOPF_OPTIONS).toMatchObject({ ruleset: 'ddv', ...RULESETS.ddv })
+    expect(RULESETS.haus).toMatchObject({ secondDulle: true, pigs: true, bock: true })
+    expect(RULESETS.einsteiger).toMatchObject({ soli: false, extras: false, wedding: false })
+  })
+
+  it('second Dulle beats the first – except in the last trick', () => {
+    expect(trickWinner(t('10H KC 10H:1 9D'), normal)).toBe('a')
+    expect(trickWinner(t('10H KC 10H:1 9D'), normal, true)).toBe('c')
+    const s = playing(
+      { a: '10H 9S', b: 'KC 9S:1', c: '10H:1 KS', d: '9D KS:1' },
+      { options: { ...DEFAULT_DOPPELKOPF_OPTIONS, secondDulle: true } },
+    )
+    const first = apply(
+      s,
+      ['a', play('10H')],
+      ['b', play('KC')],
+      ['c', play('10H:1')],
+      ['d', play('9D')],
+    )
+    expect(first.tricks[0]!.winner).toBe('c')
+    const last = playing(
+      { a: '10H', b: 'KC', c: '10H:1', d: '9D' },
+      { options: { ...DEFAULT_DOPPELKOPF_OPTIONS, secondDulle: true } },
+    )
+    const end = apply(
+      last,
+      ['a', play('10H')],
+      ['b', play('KC')],
+      ['c', play('10H:1')],
+      ['d', play('9D')],
+    )
+    expect(end.results.at(-1)!.points.re).toBeGreaterThan(0)
+  })
+
+  it('Schweinchen: both diamond aces in one hand are the highest trumps', () => {
+    const pigs: Contract = { type: 'normal', pigs: 'a' }
+    expect(trickWinner(t('AD 10H QC AD:1'), pigs)).toBe('a')
+    expect(sortHand(cards('10H AD QC'), pigs).map((c) => c.id)).toEqual(['AD', '10H', 'QC'])
+  })
+
+  /** a holds both club queens; everybody else is healthy. */
+  function wedding(options = {}) {
+    const s = setup({ soli: true, wedding: true, ...options })
+    const deal: Record<string, string> = {
+      a: 'QC QC:1 AS KS 9S 9H KH AC 9C KC 10C JS',
+      b: 'AS:1 KS:1 9S:1 AH 9H:1 KH:1 AC:1 9C:1 10C:1 KC:1 JS:1 QS',
+      c: '10H 10H:1 QS:1 QH QH:1 QD QD:1 JC JC:1 JH JH:1 JD',
+      d: 'JD:1 AD AD:1 10D 10D:1 KD KD:1 9D 9D:1 10S 10S:1 AH:1',
+    }
+    return {
+      ...s,
+      dealer: 'd',
+      turn: 'a',
+      hands: Object.fromEntries(order.map((p) => [p, cards(deal[p]!)])),
+    } as DoppelkopfState
+  }
+
+  it('wedding: the first trick won by another player makes the partner', () => {
+    let s = apply(
+      wedding(),
+      ['a', { type: 'wedding' }],
+      ['b', { type: 'healthy' }],
+      ['c', { type: 'healthy' }],
+      ['d', { type: 'healthy' }],
+    )
+    expect(s.contract).toMatchObject({ type: 'wedding', player: 'a', partner: null })
+    // No announcements before the partner is known.
+    expect(rules.legalActions(s, 'a').some((x) => x.type === 'announce')).toBe(false)
+    // a leads a plain ace; c trumps it with a Dulle and becomes a's partner.
+    s = apply(s, ['a', play('AS')], ['b', play('9S:1')], ['c', play('10H')], ['d', play('10S')])
+    expect(s.contract).toMatchObject({ partner: 'c', clarified: 1 })
+    expect(s.teams).toMatchObject({ a: 're', c: 're', b: 'kontra', d: 'kontra' })
+  })
+
+  it('wedding: a later solo beats it', () => {
+    const s = apply(wedding(), ['a', { type: 'wedding' }], ['b', { type: 'solo', kind: 'jacks' }])
+    expect(s.contract).toMatchObject({ type: 'solo', player: 'b' })
+  })
+
+  it('without solos only the bride is asked', () => {
+    const s = setup({ soli: false, wedding: true })
+    const bride = order.find(
+      (p) => s.hands[p]!.filter((c) => c.rank === 'Q' && c.suit === 'clubs').length === 2,
+    )
+    if (bride) expect(s).toMatchObject({ phase: 'reservation', turn: bride })
+    else expect(s.phase).toBe('playing')
+  })
+
+  it('bock: a lost announcement doubles the next four games', async () => {
+    const { session } = await simulateGame(doppelkopfGame, {
+      players: players.map((p) => ({ ...p, kind: 'ai' as const })),
+      agents: Object.fromEntries(order.map((p) => [p, createDoppelkopfAgent('intermediate')])),
+      options: { ...DEFAULT_DOPPELKOPF_OPTIONS, ...RULESETS.haus, ruleset: 'haus', games: 12 },
+      seed: 3,
+    })
+    const results = (session.state as DoppelkopfState).results
+    expect(results.some((r) => r.bock)).toBe(true)
+    // Every bock game follows a game that started bock (within four games).
+    results.forEach((r, i) => {
+      if (r.bock) expect(results.slice(Math.max(0, i - 4), i).some((x) => x.bockStarted)).toBe(true)
+      if (r.bock && r.winner) expect(r.items).toContain('Bock: doppelt')
+    })
   })
 })

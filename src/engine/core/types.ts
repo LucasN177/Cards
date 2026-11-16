@@ -48,4 +48,9 @@ export type GameOptionField =
       readonly label: string
       readonly description?: string
       readonly choices: readonly { readonly value: string | number; readonly label: string }[]
+      /**
+       * Choosing a value sets these other options too (a rule set). Changing one of them by hand
+       * switches to the first choice without a preset ("custom").
+       */
+      readonly presets?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
     }

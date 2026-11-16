@@ -54,6 +54,12 @@ const EXTRA_NAME = { fuchs: 'Fuchs gefangen', doppelkopf: 'Doppelkopf', karlchen
 function contractName(c: Contract, nameOf: (id: PlayerId) => string) {
   if (c.type === 'normal') return 'Normalspiel'
   if (c.type === 'silent') return `Stille Hochzeit (${nameOf(c.player)})`
+  if (c.type === 'wedding') {
+    if (c.clarified === null) return `Hochzeit (${nameOf(c.player)}, Partner offen)`
+    return c.partner
+      ? `Hochzeit (${nameOf(c.player)} & ${nameOf(c.partner)})`
+      : `Hochzeit (${nameOf(c.player)} allein)`
+  }
   return `${soloName(c.kind)} (${nameOf(c.player)})`
 }
 
@@ -103,6 +109,11 @@ function GameSummary({
           <p className="text-sm text-muted-foreground tabular-nums">
             Re {result.points.re} : {result.points.kontra} Kontra
           </p>
+          {result.bockStarted && (
+            <p className="mt-1 text-sm font-medium text-yellow-600 dark:text-yellow-400">
+              Bockrunde: Die nächsten vier Spiele zählen doppelt
+            </p>
+          )}
         </div>
         {(result.items.length > 0 || result.extras.length > 0) && (
           <ul className="space-y-0.5 text-center text-xs text-muted-foreground">
@@ -200,12 +211,31 @@ export default function DoppelkopfTable({
   let prompt: string
   if (session.isOver) prompt = 'Spiel beendet'
   else if (view.phase === 'reservation')
-    prompt = myTurn ? 'Gesund oder Solo?' : `${nameOf(view.turn)} überlegt …`
+    prompt = myTurn
+      ? view.options.soli
+        ? view.canWed
+          ? 'Gesund, Hochzeit oder Solo?'
+          : 'Gesund oder Solo?'
+        : 'Du hast beide Kreuz-Damen: Hochzeit ansagen?'
+      : `${nameOf(view.turn)} überlegt …`
   else if (myTurn) prompt = 'Du bist dran'
   else prompt = `${nameOf(view.turn)} ist am Zug …`
 
   const lastAnnounce = view.events.find((e) => e.type === 'announced')
   const lastSolo = view.events.find((e) => e.type === 'solo')
+  const special = view.events
+    .map((e) =>
+      e.type === 'wedding'
+        ? `${nameOf(e.player)} sagt Hochzeit an`
+        : e.type === 'partner'
+          ? e.partner
+            ? `${nameOf(e.partner)} ${e.partner === humanId ? 'heiratest' : 'heiratet'} ${nameOf(e.bride)}`
+            : `${nameOf(e.bride)} findet keinen Partner und spielt allein`
+          : e.type === 'pigs'
+            ? `${nameOf(e.player)} ${e.player === humanId ? 'hast' : 'hat'} Schweinchen`
+            : null,
+    )
+    .filter((t): t is string => t !== null)
 
   return (
     <>
@@ -269,6 +299,11 @@ export default function DoppelkopfTable({
                   {announcementText(lastAnnounce.party, lastAnnounce.level)}“ ·{' '}
                 </span>
               )}
+              {special.map((t) => (
+                <span key={t} className="font-medium text-yellow-200">
+                  {t} ·{' '}
+                </span>
+              ))}
               {lastSolo?.type === 'solo' && (
                 <span className="font-medium text-yellow-200">
                   {nameOf(lastSolo.player)} spielt {soloName(lastSolo.kind)} ·{' '}
@@ -283,6 +318,10 @@ export default function DoppelkopfTable({
                 view.contract.type !== 'normal' &&
                 ` · ${contractName(view.contract, nameOf)}`}
               {view.phase === 'playing' && ` · eure Augen ${view.myPoints}`}
+              {view.bock > 0 && ' · Bock (doppelt)'}
+              {view.phase === 'playing' &&
+                view.contract.pigs &&
+                ` · Schweinchen: ${nameOf(view.contract.pigs)}`}
               {(['re', 'kontra'] as const).map((p) => {
                 const text = announcementText(p, view.announcements[p])
                 return text ? ` · „${text}“` : ''
@@ -298,11 +337,26 @@ export default function DoppelkopfTable({
                       className="h-11"
                       onClick={() => act({ type: 'healthy' })}
                     >
-                      Gesund
+                      {view.options.soli ? 'Gesund' : 'Keine Hochzeit'}
                     </Button>
-                    <Button variant="secondary" className="h-11" onClick={() => setSoloOpen(true)}>
-                      Solo …
-                    </Button>
+                    {view.canWed && (
+                      <Button
+                        variant="secondary"
+                        className="h-11"
+                        onClick={() => act({ type: 'wedding' })}
+                      >
+                        Hochzeit
+                      </Button>
+                    )}
+                    {view.options.soli && (
+                      <Button
+                        variant="secondary"
+                        className="h-11"
+                        onClick={() => setSoloOpen(true)}
+                      >
+                        Solo …
+                      </Button>
+                    )}
                   </div>
                 )}
                 {soloOpen && (

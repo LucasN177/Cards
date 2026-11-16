@@ -28,7 +28,15 @@ export default function DoppelkopfRules({ options }: RulesProps) {
             Fehlfarben: Kreuz und Pik mit Ass, 10, König, 9 – Herz nur mit Ass, König, 9 (die
             Herz-10 ist Trumpf).
           </li>
-          <li>Von zwei gleichen Karten gewinnt die zuerst gespielte.</li>
+          <li>
+            Von zwei gleichen Karten gewinnt die zuerst gespielte. Mit der Regel „Zweite Dulle
+            sticht die erste“ gewinnt bei den Herz-Zehnen die zweite – außer im letzten Stich.
+          </li>
+          <li>
+            <strong>Schweinchen</strong> (Regel): Hat jemand beide Karo-Asse, sind sie die höchsten
+            Trümpfe, noch über den Dullen – im Normalspiel, bei Hochzeit und im Karo-Solo. Alle
+            sehen es zu Spielbeginn; als Fuchs zählen sie dann nicht.
+          </li>
         </RulesList>
       </RulesSection>
 
@@ -46,6 +54,13 @@ export default function DoppelkopfRules({ options }: RulesProps) {
             Hat ein Spieler beide Kreuz-Damen und sagt nichts, spielt er eine{' '}
             <strong>stille Hochzeit</strong> – allein, wie ein Solo, ohne dass die anderen es
             wissen.
+          </li>
+          <li>
+            <strong>Hochzeit</strong> (Regel): Mit beiden Kreuz-Damen darf man stattdessen Hochzeit
+            ansagen. Wer als Erster einen der ersten drei Stiche gewinnt, wird Partner (Re); gewinnt
+            die Braut alle drei, spielt sie allein wie ein Solo. Ansagen sind erst möglich, wenn der
+            Partner feststeht, die Fristen verschieben sich um die Stiche bis dahin. Ein Solo geht
+            vor.
           </li>
         </RulesList>
       </RulesSection>
@@ -77,6 +92,28 @@ export default function DoppelkopfRules({ options }: RulesProps) {
             mindestens 40 Augen), Karlchen (Kreuz-Bube gewinnt den letzten Stich) – je +1.
           </li>
           <li>Die Gewinner bekommen die Punkte, die Verlierer verlieren sie (Solist ×3).</li>
+          <li>
+            <strong>Bockrunden</strong> (Regel): Nach 120:120 oder wenn eine Partei trotz Ansage
+            verliert, zählen die nächsten vier Spiele doppelt. Neue Auslöser verlängern die
+            Bockrunde.
+          </li>
+        </RulesList>
+      </RulesSection>
+
+      <RulesSection title="Regelwerke">
+        <RulesList>
+          <li>
+            <strong>Turnier (DDV):</strong> mit Neunen, Soli, Hochzeit und Sonderpunkten; die erste
+            Dulle sticht die zweite.
+          </li>
+          <li>
+            <strong>Hausregeln:</strong> wie Turnier, dazu zweite Dulle sticht die erste,
+            Schweinchen und Bockrunden.
+          </li>
+          <li>
+            <strong>Einsteiger:</strong> nur das Normalspiel – ohne Soli, Hochzeit und Sonderpunkte.
+          </li>
+          <li>Änderst du einzelne Schalter, spielst du mit eigenen Regeln.</li>
         </RulesList>
       </RulesSection>
 
